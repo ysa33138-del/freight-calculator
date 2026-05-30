@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>海运运费快速报价 · 创展国际</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header class="header">
+    <h1>海运运费快速报价</h1>
+    <p>输入邮编和货物尺寸，即时查看所有渠道报价对比</p>
+    <span class="tag">创展国际 · 欧美专线 · 海派</span>
+  </header>
+
+  <div class="container">
+
+    <div class="card">
+      <div class="card-title">货物信息</div>
+
+      <div class="form-grid-top">
+        <div class="form-group">
+          <label for="zip">美国邮编</label>
+          <input
+            id="zip"
+            type="text"
+            inputmode="numeric"
+            maxlength="5"
+            placeholder="如 90001"
+            autocomplete="off"
+          />
+          <div id="zipHint" class="input-hint"></div>
+        </div>
+        <div class="form-group">
+          <label for="productType">产品类型</label>
+          <select id="productType">
+            <option value="normal">普通货（无附加费）</option>
+            <option value="textile">纺织/鞋包/帽子（A 类，+1元/kg）</option>
+            <option value="toy">玩具（6岁以下，+1元/kg）</option>
+            <option value="battery">电子产品 - 含电池</option>
+            <option value="nobattery">电子产品 - 不含电池</option>
+            <option value="wood">木制品/竹藤（商检费 +0.5元/kg）</option>
+            <option value="highvalue">高价值（货值>$15/kg，+1元/kg）</option>
+          </select>
+          <div id="productHint" class="input-hint"></div>
+        </div>
+      </div>
+
+      <div class="section-label">箱型尺寸</div>
+      <div id="boxGroups"></div>
+
+      <button id="addBoxBtn" class="btn-add-box" type="button">+ 添加另一种箱型</button>
+
+      <div class="btn-wrap">
+        <button id="calcBtn" class="btn-calc" disabled>计算运费</button>
+      </div>
+    </div>
+
+    <div id="results"></div>
+
+  </div>
+
+  <script src="data.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
