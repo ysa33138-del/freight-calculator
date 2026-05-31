@@ -84,14 +84,16 @@ const PRODUCT_CONFIG = {
 
 // ===== DOM 引用 =====
 
-const zipInput      = document.getElementById('zip');
-const productSelect = document.getElementById('productType');
-const productHint   = document.getElementById('productHint');
-const addBoxBtn     = document.getElementById('addBoxBtn');
-const calcBtn       = document.getElementById('calcBtn');
-const resultsDiv    = document.getElementById('results');
-const zipHint       = document.getElementById('zipHint');
-const boxGroupsDiv  = document.getElementById('boxGroups');
+const zipInput       = document.getElementById('zip');
+const productSelect  = document.getElementById('productType');
+const productHint    = document.getElementById('productHint');
+const addBoxBtn      = document.getElementById('addBoxBtn');
+const calcBtn        = document.getElementById('calcBtn');
+const resultsDiv     = document.getElementById('results');
+const zipHint        = document.getElementById('zipHint');
+const boxGroupsDiv   = document.getElementById('boxGroups');
+const destTypeSelect = document.getElementById('destType');
+const isRemoteCheck  = document.getElementById('isRemote');
 
 // ===== 箱型组管理 =====
 
@@ -265,6 +267,31 @@ function updateBoxPreview(id) {
   });
 }
 
+// ===== 偏远/住宅附加费 =====
+
+function calcRemoteSurcharge(billable, boxCount) {
+  const destType = destTypeSelect.value;
+  const isRemote = isRemoteCheck.checked;
+  const items    = [];
+  let total      = 0;
+
+  if (isRemote) {
+    const rate   = destType === 'amazon' ? 2 : 3;
+    const amount = Math.round(rate * billable * 10) / 10;
+    const label  = destType === 'amazon' ? '亚马逊偏远费' : '非亚马逊偏远费';
+    items.push({ label, detail: `+${rate}元/kg × ${billable} kg`, amount });
+    total += amount;
+  }
+
+  if (destType === 'residential') {
+    const amount = boxCount * 25;
+    items.push({ label: '私人住宅附加费', detail: `${boxCount} 件 × 25元/件`, amount });
+    total += amount;
+  }
+
+  return { total, items };
+}
+
 // ===== 实时输入处理 =====
 
 function updateZoneHint() {
@@ -345,6 +372,9 @@ productSelect.addEventListener('change', () => {
   resultsDiv.classList.remove('show');
 });
 
+destTypeSelect.addEventListener('change', () => resultsDiv.classList.remove('show'));
+isRemoteCheck.addEventListener('change',  () => resultsDiv.classList.remove('show'));
+
 addBoxBtn.addEventListener('click', addBoxGroup);
 
 // ===== 点击计算 =====
@@ -355,7 +385,8 @@ calcBtn.addEventListener('click', () => {
   const zone        = getZone(zip);
   const productCfg  = PRODUCT_CONFIG[productType];
 
-  let totalBillable  = 0;
+  let totalBillable   = 0;
+  let totalBoxCount   = 0;
   let overweightBoxes = 0;
   let oversizeBoxes   = 0;
 
@@ -364,6 +395,7 @@ calcBtn.addEventListener('click', () => {
     const volW          = (l * w * h) / 6000;
     const billablePerBox = Math.ceil(Math.max(weight, volW) * 10) / 10;
     totalBillable += billablePerBox * qty;
+    totalBoxCount += qty;
 
     if (weight > 22 && weight <= 22.5) overweightBoxes += qty;
 
@@ -391,7 +423,8 @@ calcBtn.addEventListener('click', () => {
   const overweightCharge = overweightBoxes * 150;
   const oversizeCharge   = oversizeBoxes * 150;
   const declarationFee   = 200;
-  const totalSurcharge   = productSurcharge + overweightCharge + oversizeCharge + declarationFee;
+  const remoteResult     = calcRemoteSurcharge(totalBillable, totalBoxCount);
+  const totalSurcharge   = productSurcharge + overweightCharge + oversizeCharge + declarationFee + remoteResult.total;
 
   // 各渠道计算并排序
   const rows = FREIGHT_DATA.channels.map(ch => {
@@ -452,6 +485,15 @@ calcBtn.addEventListener('click', () => {
         <span class="fee-amount">¥${oversizeCharge}</span>
       </div>`;
   }
+
+  remoteResult.items.forEach(item => {
+    feeRows += `
+      <div class="fee-row">
+        <span class="fee-label">${item.label}</span>
+        <span class="fee-detail">${item.detail}</span>
+        <span class="fee-amount">¥${item.amount.toFixed(1)}</span>
+      </div>`;
+  });
 
   feeRows += `
     <div class="fee-row fee-total">

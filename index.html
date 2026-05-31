@@ -47,6 +47,27 @@
         </div>
       </div>
 
+      <div class="form-grid-top" style="margin-top:16px">
+        <div class="form-group">
+          <label for="destType">目的地类型</label>
+          <select id="destType">
+            <option value="amazon">亚马逊仓（FBA）</option>
+            <option value="commercial">非亚马逊 · 商业地址</option>
+            <option value="residential">非亚马逊 · 私人住宅（+25元/件）</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>偏远地址</label>
+          <div class="checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="isRemote" />
+              <span>偏远地址（UPS/FEDEX偏远邮编）</span>
+            </label>
+            <div class="input-hint">偏远与否以UPS/FEDEX实际邮编表为准，可发货后6个月内补收</div>
+          </div>
+        </div>
+      </div>
+
       <div class="section-label">箱型尺寸</div>
       <div id="boxGroups"></div>
 
