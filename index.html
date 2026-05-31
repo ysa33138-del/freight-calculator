@@ -75,7 +75,7 @@
         </div>
       </div>
 
-      <div class="form-grid-top" style="margin-top:12px">
+      <div class="form-grid-top" style="margin-top:12px;grid-template-columns:1fr 1fr 1fr">
         <div class="form-group">
           <label>单独报关</label>
           <div class="checkbox-group">
@@ -95,6 +95,18 @@
             value=""
             placeholder="报关费(元/票)"
           />
+        </div>
+        <div class="form-group">
+          <label for="exchangeRate">汇率 (USD→RMB)</label>
+          <input
+            id="exchangeRate"
+            type="number"
+            min="0.1"
+            step="0.01"
+            value="6.9"
+            placeholder="如 6.9"
+          />
+          <div class="input-hint">美元报价 = 人民币 ÷ 汇率，可按当日临时调整</div>
         </div>
       </div>
 

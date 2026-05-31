@@ -97,9 +97,10 @@ const zipHint        = document.getElementById('zipHint');
 const boxGroupsDiv   = document.getElementById('boxGroups');
 const destTypeSelect   = document.getElementById('destType');
 const isRemoteCheck    = document.getElementById('isRemote');
-const needCustomsCheck = document.getElementById('needCustoms');
-const customsFeeInput  = document.getElementById('customsFee');
-const pickupSelect     = document.getElementById('pickupCity');
+const needCustomsCheck  = document.getElementById('needCustoms');
+const customsFeeInput   = document.getElementById('customsFee');
+const exchangeRateInput = document.getElementById('exchangeRate');
+const pickupSelect      = document.getElementById('pickupCity');
 
 // ===== 箱型组管理 =====
 
@@ -381,8 +382,9 @@ productSelect.addEventListener('change', () => {
 pickupSelect.addEventListener('change',    () => resultsDiv.classList.remove('show'));
 destTypeSelect.addEventListener('change',  () => resultsDiv.classList.remove('show'));
 isRemoteCheck.addEventListener('change',   () => resultsDiv.classList.remove('show'));
-needCustomsCheck.addEventListener('change',() => resultsDiv.classList.remove('show'));
-customsFeeInput.addEventListener('input',  () => resultsDiv.classList.remove('show'));
+needCustomsCheck.addEventListener('change', () => resultsDiv.classList.remove('show'));
+customsFeeInput.addEventListener('input',   () => resultsDiv.classList.remove('show'));
+exchangeRateInput.addEventListener('input', () => resultsDiv.classList.remove('show'));
 
 addBoxBtn.addEventListener('click', addBoxGroup);
 
@@ -393,6 +395,8 @@ calcBtn.addEventListener('click', () => {
   const productType = productSelect.value;
   const zone        = getZone(zip);
   const productCfg  = PRODUCT_CONFIG[productType];
+  const rate        = parseFloat(exchangeRateInput.value) || 6.9;
+  const toUSD       = rmb => '$' + (rmb / rate).toFixed(1);
 
   let totalBillable   = 0;
   let totalBoxCount   = 0;
@@ -512,7 +516,7 @@ calcBtn.addEventListener('click', () => {
     <div class="fee-row fee-total">
       <span class="fee-label">合　计</span>
       <span class="fee-detail"></span>
-      <span class="fee-amount">¥${best.total.toFixed(1)}</span>
+      <span class="fee-amount">¥${best.total.toFixed(1)}（≈ ${toUSD(best.total)}）</span>
     </div>`;
 
   // 所有渠道表格
@@ -530,7 +534,7 @@ calcBtn.addEventListener('click', () => {
         </td>
         <td data-label="单价" class="price-unit">${unitPrice.toFixed(1)}</td>
         <td data-label="基础运费" class="price-unit">¥${baseCost.toFixed(1)}</td>
-        <td data-label="总报价" class="total-price">¥${total.toFixed(1)}</td>
+        <td data-label="总报价" class="total-price">¥${total.toFixed(1)} / ${toUSD(total)}</td>
         <td data-label="备注" class="remark">${ch.remark}</td>
       </tr>`;
   });
@@ -560,6 +564,7 @@ calcBtn.addEventListener('click', () => {
         <div class="result-best-price-wrap">
           <div class="result-best-price-label">总报价</div>
           <div class="result-best-price">¥${best.total.toFixed(1)}</div>
+          <div style="font-size:.92rem;color:#16a34a;font-weight:600;margin-top:3px">≈ ${toUSD(best.total)}</div>
         </div>
       </div>
       <div class="fee-breakdown">
