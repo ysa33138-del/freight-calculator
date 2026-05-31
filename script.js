@@ -24,8 +24,11 @@ function getWeightTier(weight) {
 }
 
 function getPrice(channel, zone, billable) {
-  const tier = getWeightTier(billable);
-  return channel.prices[zone][tier];
+  const tier     = getWeightTier(billable);
+  const pickup   = pickupSelect.value;
+  const priceSet = channel.prices[pickup] || channel.prices.shenzhen;
+  if (!priceSet || !priceSet[zone]) return null;
+  return priceSet[zone][tier];
 }
 
 // ===== 产品类型配置 =====
@@ -96,6 +99,7 @@ const destTypeSelect   = document.getElementById('destType');
 const isRemoteCheck    = document.getElementById('isRemote');
 const needCustomsCheck = document.getElementById('needCustoms');
 const customsFeeInput  = document.getElementById('customsFee');
+const pickupSelect     = document.getElementById('pickupCity');
 
 // ===== 箱型组管理 =====
 
@@ -374,6 +378,7 @@ productSelect.addEventListener('change', () => {
   resultsDiv.classList.remove('show');
 });
 
+pickupSelect.addEventListener('change',    () => resultsDiv.classList.remove('show'));
 destTypeSelect.addEventListener('change',  () => resultsDiv.classList.remove('show'));
 isRemoteCheck.addEventListener('change',   () => resultsDiv.classList.remove('show'));
 needCustomsCheck.addEventListener('change',() => resultsDiv.classList.remove('show'));
@@ -430,13 +435,15 @@ calcBtn.addEventListener('click', () => {
   const remoteResult     = calcRemoteSurcharge(totalBillable, totalBoxCount);
   const totalSurcharge   = productSurcharge + overweightCharge + oversizeCharge + declarationFee + remoteResult.total;
 
-  // 各渠道计算并排序
-  const rows = FREIGHT_DATA.channels.map(ch => {
-    const unitPrice = getPrice(ch, zone, totalBillable);
-    const baseCost  = Math.round(totalBillable * unitPrice * 10) / 10;
-    const total     = Math.round((baseCost + totalSurcharge) * 10) / 10;
-    return { ch, unitPrice, baseCost, total };
-  });
+  // 各渠道计算并排序（义乌交货时过滤掉 noYiwu 渠道）
+  const rows = FREIGHT_DATA.channels
+    .filter(ch => !(pickupSelect.value === 'yiwu' && ch.noYiwu))
+    .map(ch => {
+      const unitPrice = getPrice(ch, zone, totalBillable);
+      const baseCost  = Math.round(totalBillable * unitPrice * 10) / 10;
+      const total     = Math.round((baseCost + totalSurcharge) * 10) / 10;
+      return { ch, unitPrice, baseCost, total };
+    });
   rows.sort((a, b) => a.total - b.total);
 
   const best      = rows[0];
