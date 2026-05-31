@@ -92,8 +92,10 @@ const calcBtn        = document.getElementById('calcBtn');
 const resultsDiv     = document.getElementById('results');
 const zipHint        = document.getElementById('zipHint');
 const boxGroupsDiv   = document.getElementById('boxGroups');
-const destTypeSelect = document.getElementById('destType');
-const isRemoteCheck  = document.getElementById('isRemote');
+const destTypeSelect   = document.getElementById('destType');
+const isRemoteCheck    = document.getElementById('isRemote');
+const needCustomsCheck = document.getElementById('needCustoms');
+const customsFeeInput  = document.getElementById('customsFee');
 
 // ===== 箱型组管理 =====
 
@@ -372,8 +374,10 @@ productSelect.addEventListener('change', () => {
   resultsDiv.classList.remove('show');
 });
 
-destTypeSelect.addEventListener('change', () => resultsDiv.classList.remove('show'));
-isRemoteCheck.addEventListener('change',  () => resultsDiv.classList.remove('show'));
+destTypeSelect.addEventListener('change',  () => resultsDiv.classList.remove('show'));
+isRemoteCheck.addEventListener('change',   () => resultsDiv.classList.remove('show'));
+needCustomsCheck.addEventListener('change',() => resultsDiv.classList.remove('show'));
+customsFeeInput.addEventListener('input',  () => resultsDiv.classList.remove('show'));
 
 addBoxBtn.addEventListener('click', addBoxGroup);
 
@@ -422,7 +426,7 @@ calcBtn.addEventListener('click', () => {
   const productSurcharge = Math.round(productCfg.perKg * totalBillable * 10) / 10;
   const overweightCharge = overweightBoxes * 150;
   const oversizeCharge   = oversizeBoxes * 150;
-  const declarationFee   = 200;
+  const declarationFee   = needCustomsCheck.checked ? (parseFloat(customsFeeInput.value) || 0) : 0;
   const remoteResult     = calcRemoteSurcharge(totalBillable, totalBoxCount);
   const totalSurcharge   = productSurcharge + overweightCharge + oversizeCharge + declarationFee + remoteResult.total;
 
@@ -451,12 +455,14 @@ calcBtn.addEventListener('click', () => {
       <span class="fee-amount">¥${best.baseCost.toFixed(1)}</span>
     </div>`;
 
-  feeRows += `
-    <div class="fee-row">
-      <span class="fee-label">报关费</span>
-      <span class="fee-detail">固定每票</span>
-      <span class="fee-amount">¥${declarationFee}</span>
-    </div>`;
+  if (declarationFee > 0) {
+    feeRows += `
+      <div class="fee-row">
+        <span class="fee-label">报关费</span>
+        <span class="fee-detail">单独报关</span>
+        <span class="fee-amount">¥${declarationFee}</span>
+      </div>`;
+  }
 
   if (productSurcharge > 0 && productCfg.surchargeLabel) {
     const rateText = productCfg.perKg === 0.5 ? '0.5' : String(productCfg.perKg);
