@@ -126,3 +126,73 @@ const FREIGHT_DATA = {
     }
   ]
 };
+
+// 欧洲海运数据（包税 taxed / 不包税 untaxed）
+// 数据来源：创展国际-欧美专线价格表6.3.xlsx（欧洲海运 sheet）
+// 价格单位：人民币元/KG
+const EU_DATA = {
+  volumetricDivisor: 6000,
+
+  uk: {
+    label: '英国',
+    minWeight: 26,
+    minPerPiece: 13,
+    tiers: [26, 100],
+    channels: [
+      { id: 'uk_dpd', name: '英国DPD（普通货）',
+        prices: { taxed: { 26: 15.1, 100: 11.7 }, untaxed: { 26: 9.4, 100: 7.4 } } },
+      { id: 'uk_battery', name: '英国电池专线（含电池）',
+        prices: { taxed: { 26: 16.4, 100: 13.2 }, untaxed: { 26: 12.4, 100: 9.7 } } }
+    ]
+  },
+
+  eu: {
+    label: '欧洲大陆',
+    minWeight: 25,
+    minPerPiece: 13,
+    tiers: [15, 50, 100],
+    countries: [
+      { id: 'de', name: '德国',
+        prices: { taxed: { 15: 10.6, 50: 9.6, 100: 8.6 }, untaxed: { 15: 9.6, 50: 8.6, 100: 7.6 } } },
+      { id: 'nl_cz_pl', name: '荷兰 / 捷克 / 波兰',
+        prices: { taxed: { 15: 13.9, 50: 12.9, 100: 11.9 }, untaxed: { 15: 12.9, 50: 11.9, 100: 10.9 } } },
+      { id: 'lu_be_sk_hu_fr', name: '卢森堡 / 比利时 / 斯洛伐克 / 匈牙利 / 法国',
+        prices: { taxed: { 15: 13.9, 50: 12.9, 100: 11.9 }, untaxed: { 15: 12.9, 50: 11.9, 100: 10.9 } } },
+      { id: 'lt_at_dk_hr_es_it', name: '立陶宛 / 奥地利 / 丹麦 / 克罗地亚 / 西班牙 / 意大利',
+        prices: { taxed: { 15: 15.7, 50: 14.7, 100: 13.7 }, untaxed: { 15: 14.7, 50: 13.7, 100: 12.7 } } },
+      { id: 'pt_se_ee', name: '葡萄牙 / 瑞典 / 爱沙尼亚',
+        prices: { taxed: { 15: 16.2, 50: 15.2, 100: 14.2 }, untaxed: { 15: 15.2, 50: 14.2, 100: 13.2 } } },
+      { id: 'ro_bg_ie_fi_gr_si_lv', name: '罗马尼亚 / 保加利亚 / 爱尔兰 / 芬兰 / 希腊 / 斯洛文尼亚 / 拉脱维亚',
+        prices: { taxed: { 15: 18.7, 50: 17.7, 100: 16.7 }, untaxed: { 15: 17.7, 50: 16.7, 100: 15.7 } } }
+    ]
+  },
+
+  notes: {
+    uk: '清关费 300元/票；纺织品按税率加收（税率12%→+2.5元/kg；7%以上→+1.5元/kg；7%以下→+1元/kg）；塑料/玻璃制品 +1元/kg；私人地址(非FBA) 80元/票；偏远地址请自行查询。',
+    eu: '清关费（包税线随附，不含税400元/票）；单独报关 350元/票（续页 +50元/页）；非亚马逊地址(海外仓/商业/私人) +100元/票；私人地址 +0.5元/kg(最低80元/票)；单票限5个品名，超出 +30元/个；偏远/岛屿单询；超重超长另计。'
+  },
+
+  surcharges: {
+    uk: [
+      { id: 'uk_customs',    label: '清关费',            type: 'fixed',   value: 300 },
+      { id: 'uk_residential',label: '私人地址（非FBA）', type: 'fixed',   value: 80  },
+      { id: 'uk_textile',    label: '纺织品加收',         type: 'textile'              },
+      { id: 'uk_plastic',    label: '塑料/玻璃制品',      type: 'perkg',   value: 1   },
+      { id: 'uk_redeliver',  label: '二次派送（派送失败）',type: 'perbox',  value: 100 },
+      { id: 'uk_return_op',  label: '退回/重发操作费',    type: 'fixed',   value: 400 },
+      { id: 'uk_returnfee',  label: '退件费',             type: 'fixed',   value: 100 },
+      { id: 'uk_single',     label: '单票一件加收',        type: 'fixed',   value: 100 }
+    ],
+    eu: [
+      { id: 'eu_customs',    label: '清关费（不含税线）', type: 'fixed',   value: 400 },
+      { id: 'eu_declare',    label: '单独报关',           type: 'declare'              },
+      { id: 'eu_nonamazon',  label: '非亚马逊地址（海外仓/商业/私人）', type: 'fixed', value: 100 },
+      { id: 'eu_residential',label: '私人地址',           type: 'residential'          },
+      { id: 'eu_extrasku',   label: '品名超5项',          type: 'extrasku'             },
+      { id: 'eu_redeliver',  label: '二次派送（派送失败）',type: 'perbox',  value: 100 },
+      { id: 'eu_return_op',  label: '退回/重发操作费',    type: 'fixed',   value: 400 },
+      { id: 'eu_returnfee',  label: '退件费',             type: 'fixed',   value: 100 },
+      { id: 'eu_single',     label: '单票一件加收',        type: 'fixed',   value: 100 }
+    ]
+  }
+};

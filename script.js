@@ -101,6 +101,17 @@ const needCustomsCheck  = document.getElementById('needCustoms');
 const customsFeeInput   = document.getElementById('customsFee');
 const exchangeRateInput = document.getElementById('exchangeRate');
 const pickupSelect      = document.getElementById('pickupCity');
+const regionSelect      = document.getElementById('regionSelect');
+const usControls        = document.getElementById('usControls');
+const euControls        = document.getElementById('euControls');
+const euTaxTypeSelect   = document.getElementById('euTaxType');
+const ukChannelSelect   = document.getElementById('ukChannel');
+const euCountrySelect   = document.getElementById('euCountry');
+const ukChannelGroup      = document.getElementById('ukChannelGroup');
+const euCountryGroup      = document.getElementById('euCountryGroup');
+const euSurchargeSection  = document.getElementById('euSurchargeSection');
+const euSurchargeList     = document.getElementById('euSurchargeList');
+const euExchangeRateInput = document.getElementById('euExchangeRate');
 
 // ===== 箱型组管理 =====
 
@@ -265,13 +276,15 @@ function updateBoxPreview(id) {
     `&emsp;实重 ${weight} kg · 体积重 ${volW.toFixed(1)} kg`;
   previewEl.classList.add('show');
 
-  const { warnings, errors } = checkBoxLimits(l, w, h, weight);
-  errors.forEach(msg => {
-    msgsEl.innerHTML += `<div class="box-msg box-msg-error">${msg}</div>`;
-  });
-  warnings.forEach(msg => {
-    msgsEl.innerHTML += `<div class="box-msg box-msg-warning">${msg}</div>`;
-  });
+  if (regionSelect.value === 'us') {
+    const { warnings, errors } = checkBoxLimits(l, w, h, weight);
+    errors.forEach(msg => {
+      msgsEl.innerHTML += `<div class="box-msg box-msg-error">${msg}</div>`;
+    });
+    warnings.forEach(msg => {
+      msgsEl.innerHTML += `<div class="box-msg box-msg-warning">${msg}</div>`;
+    });
+  }
 }
 
 // ===== 偏远/住宅附加费 =====
@@ -335,13 +348,17 @@ function updateProductHint() {
 }
 
 function checkFormComplete() {
-  const zip = zipInput.value.trim();
-  if (!/^\d{5}$/.test(zip) || !getZone(zip)) {
-    calcBtn.disabled = true;
-    return;
+  const region = regionSelect.value;
+
+  if (region === 'us') {
+    const zip = zipInput.value.trim();
+    if (!/^\d{5}$/.test(zip) || !getZone(zip)) {
+      calcBtn.disabled = true;
+      return;
+    }
   }
 
-  let allComplete     = true;
+  let allComplete      = true;
   let hasBlockingError = false;
 
   for (const id of boxGroups) {
@@ -355,15 +372,337 @@ function checkFormComplete() {
       break;
     }
 
-    if (weight > 22.5) { hasBlockingError = true; }
+    if (region === 'us') {
+      if (weight > 22.5) { hasBlockingError = true; }
 
-    const dims = [l, w, h].sort((a, b) => b - a);
-    if (dims[0] > 165 || dims[0] + 2 * (dims[1] + dims[2]) > 230) {
-      hasBlockingError = true;
+      const dims = [l, w, h].sort((a, b) => b - a);
+      if (dims[0] > 165 || dims[0] + 2 * (dims[1] + dims[2]) > 230) {
+        hasBlockingError = true;
+      }
     }
   }
 
   calcBtn.disabled = !allComplete || hasBlockingError;
+}
+
+// ===== 大区切换 =====
+
+function buildSurchargeList(region) {
+  euSurchargeList.innerHTML = '';
+  const items = EU_DATA.surcharges[region] || [];
+  items.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'surcharge-item';
+    div.dataset.id = item.id;
+
+    let valueHtml = '';
+    let extraHtml = '';
+
+    if (item.type === 'fixed') {
+      valueHtml = `<div class="surcharge-val-wrap">
+        <input type="number" class="surcharge-val-input" id="val_${item.id}" value="${item.value}" min="0" step="1" />
+        <span class="surcharge-val-unit">元</span>
+      </div>`;
+    } else if (item.type === 'perkg') {
+      valueHtml = `<div class="surcharge-val-wrap">
+        <input type="number" class="surcharge-val-input" id="val_${item.id}" value="${item.value}" min="0" step="0.1" />
+        <span class="surcharge-val-unit">元/kg</span>
+      </div>`;
+    } else if (item.type === 'perbox') {
+      valueHtml = `<div class="surcharge-val-wrap">
+        <input type="number" class="surcharge-val-input" id="val_${item.id}" value="${item.value}" min="0" step="1" />
+        <span class="surcharge-val-unit">元/箱</span>
+      </div>`;
+    } else if (item.type === 'textile') {
+      valueHtml = `<div class="surcharge-val-wrap">
+        <input type="number" class="surcharge-val-input" id="val_${item.id}" value="2.5" min="0" step="0.1" />
+        <span class="surcharge-val-unit">元/kg</span>
+      </div>
+      <span class="surcharge-rate-hint">税率12%→2.5 · 7%以上→1.5 · 7%以下→1</span>`;
+    } else if (item.type === 'residential') {
+      valueHtml = `<div class="surcharge-val-wrap">
+        <input type="number" class="surcharge-val-input" id="val_${item.id}" value="0.5" min="0" step="0.1" />
+        <span class="surcharge-val-unit">元/kg（最低 80 元）</span>
+      </div>`;
+    } else if (item.type === 'declare') {
+      valueHtml = `<span class="surcharge-hint">350 元 + 续页数 × 50 元</span>`;
+      extraHtml = `
+        <div class="surcharge-extra" id="extra_${item.id}">
+          <label>续页数：</label>
+          <input type="number" id="inp_${item.id}" min="0" step="1" value="0" />
+        </div>`;
+    } else if (item.type === 'extrasku') {
+      valueHtml = `<span class="surcharge-hint">超出项数 × 30 元</span>`;
+      extraHtml = `
+        <div class="surcharge-extra" id="extra_${item.id}">
+          <label>超出项数：</label>
+          <input type="number" id="inp_${item.id}" min="0" step="1" value="0" />
+        </div>`;
+    }
+
+    div.innerHTML = `
+      <label>
+        <input type="checkbox" id="chk_${item.id}" />
+        ${item.label}
+      </label>
+      ${valueHtml}
+      ${extraHtml}
+    `;
+
+    const chk = div.querySelector(`#chk_${item.id}`);
+    const extra = div.querySelector(`#extra_${item.id}`);
+    if (chk && extra) {
+      chk.addEventListener('change', () => {
+        extra.classList.toggle('show', chk.checked);
+        resultsDiv.classList.remove('show');
+      });
+    }
+    if (chk) {
+      chk.addEventListener('change', () => resultsDiv.classList.remove('show'));
+    }
+    div.querySelectorAll('select, input[type=number]').forEach(el => {
+      el.addEventListener('change', () => resultsDiv.classList.remove('show'));
+      el.addEventListener('input',  () => resultsDiv.classList.remove('show'));
+    });
+
+    euSurchargeList.appendChild(div);
+  });
+}
+
+function updateRegionDisplay() {
+  const region = regionSelect.value;
+  usControls.style.display        = region === 'us' ? ''   : 'none';
+  euControls.style.display        = region !== 'us' ? ''   : 'none';
+  ukChannelGroup.style.display    = region === 'uk' ? ''   : 'none';
+  euCountryGroup.style.display    = region === 'eu' ? ''   : 'none';
+  euSurchargeSection.style.display = region !== 'us' ? ''  : 'none';
+  if (region !== 'us') buildSurchargeList(region);
+  resultsDiv.classList.remove('show');
+  checkFormComplete();
+}
+
+// ===== 欧洲计算 =====
+
+const CHECKLIST_HTML = `<div class="checklist-card">
+  <strong>接单前检查清单</strong>
+  · 电子产品必须有 CE 认证、并在货品上贴 CE 标，否则海关扣关货代不负责。<br>
+  · 电池：纯电池一律不接；含电池可走「英国电池专线」；欧洲大陆含电池货物请先与货代确认能否承运。<br>
+  · 计重规则：单票最低 25KG 起运（英国 26KG），单件计费重最低 13KG（工具已自动计入）。<br>
+  · 超长超重：标准件为单件实重&lt;30KG 且材积重&lt;25KG、最长边&lt;120cm、第二/三边&lt;60cm、周长&lt;300cm；实重&gt;35KG 或周长&gt;300cm 时单件最长边须≤150cm；单件实重&gt;40KG 或最长边&gt;150cm 一律拒收。<br>
+  · 不接货物：液体、粉末、仿牌/侵权/禁运品；反倾销不锈钢、陶瓷餐具、自行车、山地车、手机、纯电池；珠宝、动植物。<br>
+  · 包装：只接纸箱（不接木箱/编织袋/两箱并一箱）；单件&gt;15KG 贴 Team Lift 标；外箱贴 MADE IN CHINA + 两张 FBA 标。<br>
+  · 申报：品名、价值如实申报并带 HSCODE；瞒报或仿牌一律扣货并罚 80000€/柜。
+</div>`;
+
+const TERMS_TEXT = `【渠道重点说明】
+1、接单独报关件350RMB/票，续页50RMB/页
+2、非亚马逊地址附加费（海外仓、商业地址、私人地址)+100RMB/票；偏远地址和岛屿地址单询，需确认是否能接以及费用后再下单。如果因派送不成功产生第二次派送，重新派送费用如下：100RMB/箱。
+3、单票货物不可超过5项品名，每增加一个品名加收人民币30元/个，单票一件加收100RMB一件。（货物品名和价值必须如实申报，不可用笼统品名，需带有HSCODE海关编码）
+4、单票最低25KG起运，不足25KG按25KG计费，单件计费重不能低于13KG，不够13KG按13KG计费。
+5、我司所有液体，粉末，仿牌等侵权或禁运类产品一律不接
+6、装箱单明细一定要和实际产品数量相符合，如有瞒报导致的扣货或延误所产生的费用，我司不承担任何责任。如发现仿牌等侵权类产品，一律扣货并处80000€/柜罚款
+7、如亚马逊仓库因包装问题产生拒收等原因，我司不承担任何责任，我司不再对包装做任何审核；
+8、付款说明：此渠道需及时支付货款，否则货物到当地清关后不予派送服务.
+
+【超长超重收费标准】
+标准包裹：实重小于30KG/件且材积重小于25KG/件，箱子最长边小于120cm，第二边小于60cm，第三边小于60cm，周长小于300cm【（最长边+（宽+高）*2）<300cm】
+单件材积重量超过25KG
+实重＞35KG或周长（长+（宽+高）*2）＞300CM 单件最长边不超过150CM（不接单件实重超过40KG的货物）
+拒收包裹：单件实重大于40KG或者最长边大于150cm拒收
+
+【除外责任】
+1、如因侵权问题，我司不承担任何责任并且保留追究发件人因此带来对我司的损失的赔偿
+2、如因客户货物本身质量问题以及涉及到具体的认证问题等，均不受理赔偿
+3、如遇战争，自然灾害等不可抗力因素除导致货物破坏或灭失，不受理赔偿
+4、在运输过程中如遇到班列延误/清关延误等引起的总体时效延误，均不受理赔偿
+5、对在运输途中遗失的整箱和整票货件作出赔偿，其余如货物延误、货物水湿、部分货物内容遗失指非整箱遗失、货物破损、不可抗力因素被偷/被盗等问题均不予赔偿
+6、如因地址错误和亚马逊拒收、客户拒收等原因导致货物被退回，我们将会收取退回费用并加收400元/票的操作费。如需重发，将收取400元/票操作费，具体派送费根据地址请咨询我司业务员
+7、如所申报的产品品名，种类，数量不符，所产生的任何问题，我司不承担任何责任。
+8、货入我司系统后，且已出转单出货的；由于客户原因要求退件，需要加收100RMB/票的退件费。若货物已离开深圳仓库，不做扣件和退件。
+
+【赔偿说明】
+1：提取前丢失，赔偿20RMB/KG，且不退运费；尾程快递已提取后，确认丢失的件，按最高100美金/票赔偿（无论申报或者货值多少，发货即为默认我司赔偿条款）
+2：货物在提取后未收到货在15天内提出申请查询处理，超期件不提供受理问题件。
+3：请用正规、硬朗的箱子将货物包装好，如货物损坏、非整箱丢失的, 不予赔偿（高价值建议客户自行购买保险）
+4：如因产品不合格导致海关扣货/销毁等，不予赔偿。
+
+【拒收产品】如发现冲货不备注行为没收货物并罚款80000€/柜罚款
+1、不接反倾销不锈钢产品、陶瓷餐具、自行车、山地车、手机，纯电池及任何仿牌产品
+2、所有电子产品需要有CE认证，货品上也需要贴CE标.因此产生的扣关，我司不负责
+3、拒收牌子,违禁品货物
+4、珠宝类、动植物不接
+
+【包装要求】
+1、亚马逊单件货物重量限制30公斤以内（不含30KG）；如单件超过15公斤，请按照Amazon FBA的规定贴上《Team Lift》标签，所有货物外箱需贴《MADE IN CHINA》标签，请在每箱外箱上贴上一张MADEINCHINA和两张FBA标签，标签不要贴在封箱处；
+2、不接所有不规则的货件/木箱及编织袋包装的货件/两箱并一箱包装货物，只接受纸箱包装，其他包装的均不接，我司不对包装做任何二次审核，如因客户包装问题导致的无法送仓或其他相关问题，我司不承担任何责任；
+
+【查验可能产生的费用 / 需提供文件】
+若货物查验会产生如下费用：
+1.清关通知需提供以下文件（开箱查验）：
+- test reports 商品检测报告
+- certificates of compliance (declaration of conformity) 符合性声明。每个有CE认证的产品都有，由生产商开具，含欧盟代表联系方式及生产商、产品信息。
+- 注意：文件报告必须为英文，包含商品的彩色照片、生产批号，显示符合欧盟检测标准。
+- 进口人具体信息（姓名，地址，电话，邮箱）。
+- 确认具体派送地址。
+- 具体说明货物将在哪里销售（电商平台或商场，电商请给销售链接）。海关要求用 excel 表格列出商品及对应销售链接和彩色商品图片。
+- 用 excel 表格列出每一箱具体包含的产品种类和件数（写明箱号和分单号）。
+
+【特别声明】（以下情况不接受任何赔偿）
+1）货物涉及 FDA、FCC、UL、CE、蓝牙、HDMI、LaceyAct、DOT 等认证或知识产权问题，或目的地海关认定为品牌货需授权文件的，须及时提供授权书/认证报告；未提供导致扣关甚至退运的，所有责任和费用由发件人承担；
+2）货物未按实际申报、侵犯知识产权、当地禁止进口等导致海关扣货，不在赔偿范围，我司只协助提供清关文件；
+3）货物本身质量问题及相关认证问题被海关查扣的，不受理赔偿；
+4）战争、自然灾害等不可抗力导致破损或灭失，不受理赔偿；
+5）清关延误等引起的总体时效延误，不受理赔偿；
+6）产品数量缺少、损坏、包装盒破损不受理赔偿，易碎品不接受任何损失赔偿。
+
+发货即为已经阅读以上条款并接受以上条款的约束！`;
+
+function calcSurcharges(region, totalBillable, totalBoxCount) {
+  const items  = EU_DATA.surcharges[region] || [];
+  const result = [];
+  items.forEach(item => {
+    const chk = document.getElementById(`chk_${item.id}`);
+    if (!chk || !chk.checked) return;
+    let amount = 0;
+    let detail = '';
+    if (item.type === 'fixed') {
+      const val = parseFloat(document.getElementById(`val_${item.id}`)?.value) || item.value;
+      amount = val;
+      detail = `固定 ${val} 元`;
+    } else if (item.type === 'perkg') {
+      const rate = parseFloat(document.getElementById(`val_${item.id}`)?.value) || item.value;
+      amount = Math.round(rate * totalBillable * 10) / 10;
+      detail = `${rate} 元/kg × ${totalBillable} kg`;
+    } else if (item.type === 'perbox') {
+      const rate = parseFloat(document.getElementById(`val_${item.id}`)?.value) || item.value;
+      amount = rate * totalBoxCount;
+      detail = `${rate} 元/箱 × ${totalBoxCount} 箱`;
+    } else if (item.type === 'textile') {
+      const rate = parseFloat(document.getElementById(`val_${item.id}`)?.value) || 2.5;
+      amount = Math.round(rate * totalBillable * 10) / 10;
+      detail = `${rate} 元/kg × ${totalBillable} kg`;
+    } else if (item.type === 'declare') {
+      const pages = parseInt(document.getElementById(`inp_${item.id}`)?.value || '0') || 0;
+      amount = 350 + pages * 50;
+      detail = pages > 0 ? `350 + ${pages} 页 × 50` : '350 元';
+    } else if (item.type === 'residential') {
+      const rate = parseFloat(document.getElementById(`val_${item.id}`)?.value) || 0.5;
+      amount = Math.max(Math.round(rate * totalBillable * 10) / 10, 80);
+      detail = `${rate} 元/kg × ${totalBillable} kg（最低 80 元）`;
+    } else if (item.type === 'extrasku') {
+      const extra = parseInt(document.getElementById(`inp_${item.id}`)?.value || '0') || 0;
+      amount = extra * 30;
+      detail = `${extra} 项 × 30 元`;
+    }
+    result.push({ label: item.label, detail, amount });
+  });
+  return result;
+}
+
+function calcEU() {
+  const region   = regionSelect.value;
+  const config   = region === 'uk' ? EU_DATA.uk : EU_DATA.eu;
+  const taxType  = euTaxTypeSelect.value;
+  const taxLabel = taxType === 'taxed' ? '包税' : '不包税';
+
+  const selected = region === 'uk'
+    ? EU_DATA.uk.channels.find(c => c.id === ukChannelSelect.value)
+    : EU_DATA.eu.countries.find(c => c.id === euCountrySelect.value);
+
+  let totalBillable = 0;
+  let totalBoxCount = 0;
+  const groupCount  = boxGroups.length;
+
+  for (const id of boxGroups) {
+    const { l, w, h, weight, qty } = getBoxData(id);
+    const volW           = (l * w * h) / EU_DATA.volumetricDivisor;
+    const rawBillable    = Math.ceil(Math.max(weight, volW) * 10) / 10;
+    const billablePerBox = Math.max(rawBillable, config.minPerPiece);
+    totalBillable += billablePerBox * qty;
+    totalBoxCount += qty;
+  }
+
+  totalBillable = Math.max(Math.round(totalBillable * 10) / 10, config.minWeight);
+
+  const tier = region === 'uk'
+    ? (totalBillable >= 100 ? 100 : 26)
+    : (totalBillable >= 100 ? 100 : totalBillable >= 50 ? 50 : 15);
+
+  const tierLabel = tier === 100 ? '100KG+' : tier === 50 ? '50KG+' : (region === 'uk' ? '26KG+' : '15KG+');
+  const unitPrice = selected.prices[taxType][tier];
+  const baseCost  = Math.round(totalBillable * unitPrice * 10) / 10;
+  const destLabel = region === 'uk' ? EU_DATA.uk.label : selected.name;
+  const roleLabel = region === 'uk' ? '选定渠道' : '目的国家';
+
+  const surcharges     = calcSurcharges(region, totalBillable, totalBoxCount);
+  const surchargeTotal = surcharges.reduce((s, x) => s + x.amount, 0);
+  const grandTotal     = Math.round((baseCost + surchargeTotal) * 10) / 10;
+
+  const euRate = parseFloat(euExchangeRateInput.value) || 6.9;
+  const toUSD  = rmb => '$' + (rmb / euRate).toFixed(1);
+
+  let feeRows = `
+    <div class="fee-row">
+      <span class="fee-label">基础运费</span>
+      <span class="fee-detail">${totalBillable} kg × ${unitPrice.toFixed(1)} 元/kg（${tierLabel} 档）</span>
+      <span class="fee-amount">¥${baseCost.toFixed(1)}</span>
+    </div>`;
+
+  surcharges.forEach(s => {
+    feeRows += `
+    <div class="fee-row">
+      <span class="fee-label">${s.label}</span>
+      <span class="fee-detail">${s.detail}</span>
+      <span class="fee-amount">¥${s.amount.toFixed(1)}</span>
+    </div>`;
+  });
+
+  feeRows += `
+    <div class="fee-row fee-total">
+      <span class="fee-label">合　计</span>
+      <span class="fee-detail"></span>
+      <span class="fee-amount">¥${grandTotal.toFixed(1)}（≈ ${toUSD(grandTotal)}）</span>
+    </div>`;
+
+  resultsDiv.innerHTML = `
+    <div class="result-meta">
+      总计费重 <strong>${totalBillable} kg</strong>（共 ${groupCount} 种箱型）&nbsp;·&nbsp;
+      目的地：${destLabel}&nbsp;·&nbsp;
+      报价类型：${taxLabel}&nbsp;·&nbsp;
+      适用档位：<strong>${tierLabel}</strong>
+    </div>
+
+    <div class="result-best-card">
+      <div class="result-best-header">
+        <div>
+          <div class="result-best-label">${roleLabel}</div>
+          <div class="result-best-name">${selected.name}</div>
+        </div>
+        <div class="result-best-price-wrap">
+          <div class="result-best-price-label">合计报价</div>
+          <div class="result-best-price">¥${grandTotal.toFixed(1)}</div>
+          <div style="font-size:.92rem;color:#16a34a;font-weight:600;margin-top:3px">≈ ${toUSD(grandTotal)}</div>
+        </div>
+      </div>
+      <div class="fee-breakdown">${feeRows}</div>
+    </div>
+
+    ${CHECKLIST_HTML}
+
+    <div class="terms-wrap">
+      <button class="terms-toggle" id="termsToggleBtn" type="button">▶ 完整条款（货代原文，点击展开）</button>
+      <div class="terms-body" id="termsBody">${TERMS_TEXT}</div>
+    </div>
+  `;
+
+  document.getElementById('termsToggleBtn').addEventListener('click', function () {
+    const body  = document.getElementById('termsBody');
+    const open  = body.classList.toggle('show');
+    this.textContent = (open ? '▼ ' : '▶ ') + '完整条款（货代原文，点击展开）';
+  });
+
+  resultsDiv.classList.add('show');
+  resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 // ===== 事件绑定 =====
@@ -388,9 +727,17 @@ exchangeRateInput.addEventListener('input', () => resultsDiv.classList.remove('s
 
 addBoxBtn.addEventListener('click', addBoxGroup);
 
+regionSelect.addEventListener('change', updateRegionDisplay);
+euTaxTypeSelect.addEventListener('change',    () => resultsDiv.classList.remove('show'));
+ukChannelSelect.addEventListener('change',    () => resultsDiv.classList.remove('show'));
+euCountrySelect.addEventListener('change',    () => resultsDiv.classList.remove('show'));
+euExchangeRateInput.addEventListener('input', () => resultsDiv.classList.remove('show'));
+
 // ===== 点击计算 =====
 
 calcBtn.addEventListener('click', () => {
+  if (regionSelect.value !== 'us') { calcEU(); return; }
+
   const zip         = zipInput.value.trim();
   const productType = productSelect.value;
   const zone        = getZone(zip);
@@ -423,13 +770,7 @@ calcBtn.addEventListener('click', () => {
   resultsDiv.innerHTML = '';
   resultsDiv.classList.add('show');
 
-  if (totalBillable < 21) {
-    resultsDiv.innerHTML = `
-      <div class="error-msg">
-        ⚠️ 总计费重 ${totalBillable} kg，不足 21 kg 起运量，无法走海派渠道。
-      </div>`;
-    return;
-  }
+  if (totalBillable < 21) totalBillable = 21;
 
   // 附加费计算
   const productSurcharge = Math.round(productCfg.perKg * totalBillable * 10) / 10;
@@ -611,5 +952,5 @@ calcBtn.addEventListener('click', () => {
 
 // ===== 初始化 =====
 addBoxGroup();
-checkFormComplete();
+updateRegionDisplay();
 updateProductHint();
