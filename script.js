@@ -28,7 +28,34 @@ function getPrice(channel, zone, billable) {
   const pickup   = pickupSelect.value;
   const priceSet = channel.prices[pickup] || channel.prices.shenzhen;
   if (!priceSet || !priceSet[zone]) return null;
-  return priceSet[zone][tier];
+  const price = priceSet[zone][tier];
+  return Number.isFinite(price) ? price : null;
+}
+
+function parseFiniteNumber(value) {
+  const number = parseFloat(value);
+  return Number.isFinite(number) ? number : null;
+}
+
+function parseNumberInput(id, fallback) {
+  const input = document.getElementById(id);
+  const number = parseFiniteNumber(input?.value);
+  return number === null ? fallback : number;
+}
+
+function getValidExchangeRate(input) {
+  const rate = parseFiniteNumber(input?.value);
+  return rate !== null && rate > 0 ? rate : null;
+}
+
+function isValidQuantity(qty) {
+  return Number.isInteger(qty) && qty > 0;
+}
+
+function showCalcError(message) {
+  resultsDiv.innerHTML = `<div class="error-msg">${message}</div>`;
+  resultsDiv.classList.add('show');
+  resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 // ===== 产品类型配置 =====
@@ -213,7 +240,7 @@ function getBoxData(id) {
     w:      parseFloat(el.querySelector('.box-w').value),
     h:      parseFloat(el.querySelector('.box-h').value),
     weight: parseFloat(el.querySelector('.box-weight').value),
-    qty:    Math.max(1, parseInt(el.querySelector('.box-qty').value) || 1),
+    qty:    Number(el.querySelector('.box-qty').value),
   };
 }
 
@@ -258,10 +285,11 @@ function updateBoxPreview(id) {
 
   const hasDims   = !isNaN(l) && l > 0 && !isNaN(w) && w > 0 && !isNaN(h) && h > 0;
   const hasWeight = !isNaN(weight) && weight > 0;
+  const hasQty    = isValidQuantity(qty);
 
   msgsEl.innerHTML = '';
 
-  if (!hasDims || !hasWeight) {
+  if (!hasDims || !hasWeight || !hasQty) {
     previewEl.innerHTML = '';
     previewEl.classList.remove('show');
     return;
@@ -364,10 +392,10 @@ function checkFormComplete() {
   for (const id of boxGroups) {
     const data = getBoxData(id);
     if (!data) { allComplete = false; break; }
-    const { l, w, h, weight } = data;
+    const { l, w, h, weight, qty } = data;
 
     if (isNaN(l) || l <= 0 || isNaN(w) || w <= 0 || isNaN(h) || h <= 0 ||
-        isNaN(weight) || weight <= 0) {
+        isNaN(weight) || weight <= 0 || !isValidQuantity(qty)) {
       allComplete = false;
       break;
     }
@@ -612,19 +640,19 @@ function calcSurcharges(region, totalBillable, totalBoxCount) {
     let amount = 0;
     let detail = '';
     if (item.type === 'fixed') {
-      const val = parseFloat(document.getElementById(`val_${item.id}`)?.value) || item.value;
+      const val = parseNumberInput(`val_${item.id}`, item.value);
       amount = val;
       detail = `固定 ${val} 元`;
     } else if (item.type === 'perkg') {
-      const rate = parseFloat(document.getElementById(`val_${item.id}`)?.value) || item.value;
+      const rate = parseNumberInput(`val_${item.id}`, item.value);
       amount = Math.round(rate * totalBillable * 10) / 10;
       detail = `${rate} 元/kg × ${totalBillable} kg`;
     } else if (item.type === 'perbox') {
-      const rate = parseFloat(document.getElementById(`val_${item.id}`)?.value) || item.value;
+      const rate = parseNumberInput(`val_${item.id}`, item.value);
       amount = rate * totalBoxCount;
       detail = `${rate} 元/箱 × ${totalBoxCount} 箱`;
     } else if (item.type === 'textile') {
-      const rate = parseFloat(document.getElementById(`val_${item.id}`)?.value) || 2.5;
+      const rate = parseNumberInput(`val_${item.id}`, 2.5);
       amount = Math.round(rate * totalBillable * 10) / 10;
       detail = `${rate} 元/kg × ${totalBillable} kg`;
     } else if (item.type === 'declare') {
@@ -632,7 +660,7 @@ function calcSurcharges(region, totalBillable, totalBoxCount) {
       amount = 350 + pages * 50;
       detail = pages > 0 ? `350 + ${pages} 页 × 50` : '350 元';
     } else if (item.type === 'residential') {
-      const rate = parseFloat(document.getElementById(`val_${item.id}`)?.value) || 0.5;
+      const rate = parseNumberInput(`val_${item.id}`, 0.5);
       amount = Math.max(Math.round(rate * totalBillable * 10) / 10, 80);
       detail = `${rate} 元/kg × ${totalBillable} kg（最低 80 元）`;
     } else if (item.type === 'extrasku') {
@@ -655,6 +683,17 @@ function calcEU() {
     ? EU_DATA.uk.channels.find(c => c.id === ukChannelSelect.value)
     : EU_DATA.eu.countries.find(c => c.id === euCountrySelect.value);
 
+  if (!config || !selected || !['taxed', 'untaxed'].includes(taxType)) {
+    showCalcError('当前渠道或报价类型数据缺失，请检查报价数据配置。');
+    return;
+  }
+
+  const euRate = getValidExchangeRate(euExchangeRateInput);
+  if (euRate === null) {
+    showCalcError('汇率必须是大于 0 的有效数字。');
+    return;
+  }
+
   let totalBillable = 0;
   let totalBoxCount = 0;
   const groupCount  = boxGroups.length;
@@ -675,7 +714,11 @@ function calcEU() {
     : (totalBillable >= 100 ? 100 : totalBillable >= 50 ? 50 : 15);
 
   const tierLabel = tier === 100 ? '100KG+' : tier === 50 ? '50KG+' : (region === 'uk' ? '26KG+' : '15KG+');
-  const unitPrice = selected.prices[taxType][tier];
+  const unitPrice = selected.prices?.[taxType]?.[tier];
+  if (!Number.isFinite(unitPrice)) {
+    showCalcError('当前渠道缺少对应重量档位价格，请检查报价数据配置。');
+    return;
+  }
   const baseCost  = Math.round(totalBillable * unitPrice * 10) / 10;
   const destLabel = region === 'uk' ? EU_DATA.uk.label : selected.name;
   const roleLabel = region === 'uk' ? '选定渠道' : '目的国家';
@@ -684,7 +727,6 @@ function calcEU() {
   const surchargeTotal = surcharges.reduce((s, x) => s + x.amount, 0);
   const grandTotal     = Math.round((baseCost + surchargeTotal) * 10) / 10;
 
-  const euRate = parseFloat(euExchangeRateInput.value) || 6.9;
   const toUSD  = rmb => '$' + (rmb / euRate).toFixed(1);
 
   let feeRows = `
@@ -788,7 +830,16 @@ calcBtn.addEventListener('click', () => {
   const productType = productSelect.value;
   const zone        = getZone(zip);
   const productCfg  = PRODUCT_CONFIG[productType];
-  const rate        = parseFloat(exchangeRateInput.value) || 6.9;
+  if (!productCfg) {
+    showCalcError('当前产品类型数据缺失，请检查报价数据配置。');
+    return;
+  }
+
+  const rate = getValidExchangeRate(exchangeRateInput);
+  if (rate === null) {
+    showCalcError('汇率必须是大于 0 的有效数字。');
+    return;
+  }
   const toUSD       = rmb => '$' + (rmb / rate).toFixed(1);
 
   let totalBillable   = 0;
@@ -822,19 +873,25 @@ calcBtn.addEventListener('click', () => {
   const productSurcharge = Math.round(productCfg.perKg * totalBillable * 10) / 10;
   const overweightCharge = overweightBoxes * 150;
   const oversizeCharge   = oversizeBoxes * 150;
-  const declarationFee   = needCustomsCheck.checked ? (parseFloat(customsFeeInput.value) || 0) : 0;
+  const declarationFee   = needCustomsCheck.checked ? parseNumberInput('customsFee', 0) : 0;
   const remoteResult     = calcRemoteSurcharge(totalBillable, totalBoxCount);
   const totalSurcharge   = productSurcharge + overweightCharge + oversizeCharge + declarationFee + remoteResult.total;
 
   // 各渠道计算并排序（义乌交货时过滤掉 noYiwu 渠道）
   const rows = FREIGHT_DATA.channels
     .filter(ch => !(pickupSelect.value === 'yiwu' && ch.noYiwu))
-    .map(ch => {
+    .reduce((acc, ch) => {
       const unitPrice = getPrice(ch, zone, totalBillable);
+      if (!Number.isFinite(unitPrice)) return acc;
       const baseCost  = Math.round(totalBillable * unitPrice * 10) / 10;
       const total     = Math.round((baseCost + totalSurcharge) * 10) / 10;
-      return { ch, unitPrice, baseCost, total };
-    });
+      acc.push({ ch, unitPrice, baseCost, total });
+      return acc;
+    }, []);
+  if (rows.length === 0) {
+    showCalcError('当前邮编分区或重量档位缺少可用渠道价格，请检查报价数据配置。');
+    return;
+  }
   rows.sort((a, b) => a.total - b.total);
 
   const best      = rows[0];
