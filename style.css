@@ -991,3 +991,20 @@ tbody td:nth-child(4) { text-align: right; }
 }
 
 .terms-body.show { display: block; }
+
+/* 常用箱型 */
+.box-preset-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px;}
+.box-preset-chips{display:flex;flex-wrap:wrap;gap:8px;}
+.box-preset-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;background:#eef2ff;border:1px solid #c7d2fe;border-radius:999px;font-size:13px;color:#3730a3;cursor:pointer;transition:background .15s;}
+.box-preset-chip:hover{background:#e0e7ff;}
+.box-preset-chip .chip-del{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;color:#6366f1;font-size:13px;line-height:1;}
+.box-preset-chip .chip-del:hover{background:#c7d2fe;color:#312e81;}
+.btn-save-preset{padding:5px 12px;background:#fff;border:1px dashed #94a3b8;border-radius:999px;font-size:13px;color:#475569;cursor:pointer;transition:all .15s;}
+.btn-save-preset:hover{border-color:#6366f1;color:#4338ca;}
+.box-preset-empty{font-size:13px;color:#94a3b8;}
+.box-preset-chip{align-items:center;gap:8px;}
+.chip-text{display:flex;flex-direction:column;line-height:1.25;cursor:pointer;}
+.chip-name{font-weight:600;font-size:13px;color:#312e81;}
+.chip-dims{font-size:11px;color:#6366f1;opacity:.85;}
+.box-preset-chip .chip-edit{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;color:#6366f1;font-size:12px;line-height:1;cursor:pointer;}
+.box-preset-chip .chip-edit:hover{background:#c7d2fe;color:#312e81;}

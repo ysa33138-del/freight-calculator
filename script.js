@@ -244,6 +244,59 @@ function getBoxData(id) {
   };
 }
 
+// ===== 常用箱型（localStorage）=====
+const PRESET_KEY = 'cz_freight_box_presets';
+function loadBoxPresets(){ try { return JSON.parse(localStorage.getItem(PRESET_KEY)) || []; } catch { return []; } }
+function saveBoxPresets(list){ try { localStorage.setItem(PRESET_KEY, JSON.stringify(list)); } catch {} }
+function renderBoxPresets(){
+  const wrap = document.getElementById('boxPresetChips');
+  if (!wrap) return;
+  const list = loadBoxPresets();
+  if (list.length === 0){ wrap.innerHTML = '<span class="box-preset-empty">还没有常用箱型，填好尺寸后点右边「保存当前箱型」</span>'; return; }
+  wrap.innerHTML = '';
+  list.forEach((p, i) => {
+    const chip = document.createElement('span');
+    chip.className = 'box-preset-chip';
+    const text = document.createElement('span');
+    text.className = 'chip-text'; text.title = '点击填入箱型';
+    const nameEl = document.createElement('span'); nameEl.className = 'chip-name'; nameEl.textContent = p.name;
+    const dimsEl = document.createElement('span'); dimsEl.className = 'chip-dims'; dimsEl.textContent = `${p.l}×${p.w}×${p.h} · ${p.weight}kg · ${p.qty}箱`;
+    text.appendChild(nameEl); text.appendChild(dimsEl);
+    text.addEventListener('click', () => applyBoxPreset(p));
+    const editEl = document.createElement('span'); editEl.className = 'chip-edit'; editEl.title = '重命名'; editEl.textContent = '✎';
+    editEl.addEventListener('click', (e) => { e.stopPropagation(); renameBoxPreset(i); });
+    const delEl = document.createElement('span'); delEl.className = 'chip-del'; delEl.title = '删除'; delEl.textContent = '×';
+    delEl.addEventListener('click', (e) => { e.stopPropagation(); deleteBoxPreset(i); });
+    chip.appendChild(text); chip.appendChild(editEl); chip.appendChild(delEl);
+    wrap.appendChild(chip);
+  });
+}
+function applyBoxPreset(p){
+  const id = boxGroups[0];
+  const el = document.getElementById(`box-group-${id}`);
+  if (!el) return;
+  const set = (cls, val) => { const inp = el.querySelector(cls); inp.value = val; inp.dispatchEvent(new Event('input', { bubbles: true })); };
+  set('.box-l', p.l); set('.box-w', p.w); set('.box-h', p.h); set('.box-weight', p.weight); set('.box-qty', p.qty);
+}
+function saveCurrentBoxPreset(){
+  const d = getBoxData(boxGroups[0]);
+  if (!d || isNaN(d.l) || isNaN(d.w) || isNaN(d.h) || isNaN(d.weight)){ alert('请先把第一个箱型的长、宽、高、实重填完整，再保存。'); return; }
+  let name = (prompt('给这款产品起个名字（如：厨房秤5kg、珠宝秤、咖啡秤）', '') || '').trim();
+  if (!name) name = `${d.l}×${d.w}×${d.h}·${d.weight}kg`;
+  const list = loadBoxPresets();
+  list.push({ name, l: d.l, w: d.w, h: d.h, weight: d.weight, qty: d.qty || 1 });
+  saveBoxPresets(list); renderBoxPresets();
+}
+function deleteBoxPreset(i){ const list = loadBoxPresets(); list.splice(i, 1); saveBoxPresets(list); renderBoxPresets(); }
+function renameBoxPreset(i){
+  const list = loadBoxPresets();
+  if (!list[i]) return;
+  const name = (prompt('改个名字（如：厨房秤5kg）', list[i].name) || '').trim();
+  if (!name) return;
+  list[i].name = name;
+  saveBoxPresets(list); renderBoxPresets();
+}
+
 // ===== 超限检查辅助 =====
 
 function checkBoxLimits(l, w, h, weight) {
@@ -707,7 +760,9 @@ function calcEU() {
     totalBoxCount += qty;
   }
 
-  totalBillable = Math.max(Math.round(totalBillable * 10) / 10, config.minWeight);
+  const rawTotalBillable = Math.round(totalBillable * 10) / 10;
+  const minApplied = rawTotalBillable < config.minWeight;
+  totalBillable = Math.max(rawTotalBillable, config.minWeight);
 
   const tier = region === 'uk'
     ? (totalBillable >= 100 ? 100 : 26)
@@ -732,7 +787,7 @@ function calcEU() {
   let feeRows = `
     <div class="fee-row">
       <span class="fee-label">基础运费</span>
-      <span class="fee-detail">${totalBillable} kg × ${unitPrice.toFixed(1)} 元/kg（${tierLabel} 档）</span>
+      <span class="fee-detail">${totalBillable} kg × ${unitPrice.toFixed(1)} 元/kg（${tierLabel} 档）${minApplied ? `<br><span style="opacity:.65;font-size:.85em;">实际计费重 ${rawTotalBillable} kg，不足最低起运 ${config.minWeight} kg，按 ${config.minWeight} kg 计费</span>` : ''}</span>
       <span class="fee-amount">¥${baseCost.toFixed(1)}</span>
     </div>`;
 
@@ -814,6 +869,7 @@ customsFeeInput.addEventListener('input',   () => resultsDiv.classList.remove('s
 exchangeRateInput.addEventListener('input', () => resultsDiv.classList.remove('show'));
 
 addBoxBtn.addEventListener('click', addBoxGroup);
+document.getElementById('savePresetBtn').addEventListener('click', saveCurrentBoxPreset);
 
 regionSelect.addEventListener('change', updateRegionDisplay);
 euTaxTypeSelect.addEventListener('change',    () => resultsDiv.classList.remove('show'));
@@ -863,10 +919,12 @@ calcBtn.addEventListener('click', () => {
   }
 
   totalBillable = Math.round(totalBillable * 10) / 10;
+  const rawTotalBillable = totalBillable;
 
   resultsDiv.innerHTML = '';
   resultsDiv.classList.add('show');
 
+  const minApplied = totalBillable < 21;
   if (totalBillable < 21) totalBillable = 21;
 
   // 附加费计算
@@ -906,7 +964,7 @@ calcBtn.addEventListener('click', () => {
   feeRows += `
     <div class="fee-row">
       <span class="fee-label">基础运费</span>
-      <span class="fee-detail">${totalBillable} kg × ${best.unitPrice.toFixed(1)} 元/kg（${tierLabel} 档）</span>
+      <span class="fee-detail">${totalBillable} kg × ${best.unitPrice.toFixed(1)} 元/kg（${tierLabel} 档）${minApplied ? `<br><span style="opacity:.65;font-size:.85em;">实际计费重 ${rawTotalBillable} kg，不足最低起运 21 kg，按 21 kg 计费</span>` : ''}</span>
       <span class="fee-amount">¥${best.baseCost.toFixed(1)}</span>
     </div>`;
 
@@ -1068,5 +1126,6 @@ calcBtn.addEventListener('click', () => {
 
 // ===== 初始化 =====
 addBoxGroup();
+renderBoxPresets();
 updateRegionDisplay();
 updateProductHint();
