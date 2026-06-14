@@ -147,6 +147,16 @@ body {
 
 .form-group input.invalid {
   border-color: var(--red);
+  background: #fff7f7;
+  box-shadow: 0 0 0 3px rgba(239,68,68,.10);
+}
+
+.box-input-item input.invalid,
+.surcharge-val-input.invalid,
+.surcharge-extra input.invalid {
+  border-color: var(--red);
+  background: #fff7f7;
+  box-shadow: 0 0 0 3px rgba(239,68,68,.10);
 }
 
 .input-hint {
@@ -154,6 +164,7 @@ body {
   color: var(--gray-500);
   min-height: 16px;
   margin-top: 2px;
+  line-height: 1.45;
 }
 
 .input-hint.zone-west    { color: #0284c7; font-weight: 600; }
@@ -196,7 +207,7 @@ body {
   color: var(--blue-800);
   text-transform: uppercase;
   letter-spacing: .1em;
-  margin: 24px 0 12px;
+  margin: 26px 0 12px;
   padding-bottom: 10px;
   border-bottom: 1px solid var(--gray-100);
 }
@@ -381,10 +392,11 @@ body {
 .btn-calc:active:not(:disabled) { transform: translateY(0); }
 
 .btn-calc:disabled {
-  background: var(--gray-300);
-  color: var(--gray-500);
+  background: #cbd5e1;
+  color: #64748b;
   cursor: not-allowed;
   box-shadow: none;
+  opacity: .9;
 }
 
 /* ===== 结果区 ===== */
@@ -916,6 +928,20 @@ tbody td:nth-child(4) { text-align: right; }
   border-color: var(--blue-600);
 }
 
+.surcharge-item:has(input[type=checkbox]:checked) .surcharge-val-input.invalid {
+  border-color: var(--red);
+}
+
+.surcharge-item.surcharge-invalid {
+  border-color: #fca5a5;
+  background: #fff7f7;
+}
+
+.surcharge-item.surcharge-invalid .surcharge-val-unit,
+.surcharge-item.surcharge-invalid .surcharge-rate-hint {
+  color: var(--red);
+}
+
 .surcharge-val-unit {
   font-size: .78rem;
   color: var(--gray-500);
@@ -993,7 +1019,7 @@ tbody td:nth-child(4) { text-align: right; }
 .terms-body.show { display: block; }
 
 /* 常用箱型 */
-.box-preset-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px;}
+.box-preset-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:2px 0 14px;}
 .box-preset-chips{display:flex;flex-wrap:wrap;gap:8px;}
 .box-preset-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;background:#eef2ff;border:1px solid #c7d2fe;border-radius:999px;font-size:13px;color:#3730a3;cursor:pointer;transition:background .15s;}
 .box-preset-chip:hover{background:#e0e7ff;}

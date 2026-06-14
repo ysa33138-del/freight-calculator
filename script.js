@@ -52,6 +52,23 @@ function isValidQuantity(qty) {
   return Number.isInteger(qty) && qty > 0;
 }
 
+function isValidFiniteInput(input) {
+  const raw = input?.value?.trim() || '';
+  const value = parseFiniteNumber(raw);
+  return raw !== '' && value !== null;
+}
+
+function setInputInvalid(input, invalid, message = '') {
+  if (!input) return;
+  input.classList.toggle('invalid', invalid);
+  input.title = invalid ? message : '';
+}
+
+function setCalcButtonState(disabled, reason = '') {
+  calcBtn.disabled = disabled;
+  calcBtn.title = disabled ? reason : '';
+}
+
 function showCalcError(message) {
   resultsDiv.innerHTML = `<div class="error-msg">${message}</div>`;
   resultsDiv.classList.add('show');
@@ -430,27 +447,30 @@ function updateProductHint() {
 
 function checkFormComplete() {
   const region = regionSelect.value;
-
-  if (region === 'us') {
-    const zip = zipInput.value.trim();
-    if (!/^\d{5}$/.test(zip) || !getZone(zip)) {
-      calcBtn.disabled = true;
-      return;
-    }
-  }
-
   let allComplete      = true;
   let hasBlockingError = false;
+  let hasInvalidQty    = false;
 
   for (const id of boxGroups) {
     const data = getBoxData(id);
     if (!data) { allComplete = false; break; }
     const { l, w, h, weight, qty } = data;
+    const el = document.getElementById(`box-group-${id}`);
+    const qtyInput = el?.querySelector('.box-qty');
+    const invalidQty = !qtyInput || qtyInput.value.trim() === '' || !isValidQuantity(qty);
+    setInputInvalid(qtyInput, invalidQty, '箱数必须是大于 0 的整数');
+    if (invalidQty) hasInvalidQty = true;
 
-    if (isNaN(l) || l <= 0 || isNaN(w) || w <= 0 || isNaN(h) || h <= 0 ||
-        isNaN(weight) || weight <= 0 || !isValidQuantity(qty)) {
+    const groupComplete =
+      !isNaN(l) && l > 0 &&
+      !isNaN(w) && w > 0 &&
+      !isNaN(h) && h > 0 &&
+      !isNaN(weight) && weight > 0 &&
+      isValidQuantity(qty);
+
+    if (!groupComplete) {
       allComplete = false;
-      break;
+      continue;
     }
 
     if (region === 'us') {
@@ -463,7 +483,39 @@ function checkFormComplete() {
     }
   }
 
-  calcBtn.disabled = !allComplete || hasBlockingError;
+  const activeRateInput = region === 'us' ? exchangeRateInput : euExchangeRateInput;
+  const inactiveRateInput = region === 'us' ? euExchangeRateInput : exchangeRateInput;
+  const invalidRate = activeRateInput.value.trim() === '' || getValidExchangeRate(activeRateInput) === null;
+  setInputInvalid(activeRateInput, invalidRate, '汇率必须是大于 0 的有效数字');
+  setInputInvalid(inactiveRateInput, false);
+  const invalidCustomsFee = region === 'us' && needCustomsCheck.checked && !isValidFiniteInput(customsFeeInput);
+  setInputInvalid(customsFeeInput, invalidCustomsFee, '报关费请输入有效数字');
+
+  let disabledReason = '';
+  if (region === 'us') {
+    const zip = zipInput.value.trim();
+    if (!/^\d{5}$/.test(zip) || !getZone(zip)) {
+      disabledReason = '请输入有效美国邮编';
+    }
+  }
+  if (!disabledReason && !allComplete) {
+    disabledReason = hasInvalidQty ? '请修正箱数' : '请填写完整箱型尺寸和重量';
+  }
+  if (!disabledReason && invalidRate) {
+    disabledReason = '请输入大于 0 的有效汇率';
+  }
+  if (!disabledReason && invalidCustomsFee) {
+    disabledReason = '请填写有效报关费';
+  }
+  const hasInvalidSurcharge = region !== 'us' && updateSurchargeValidation();
+  if (!disabledReason && hasInvalidSurcharge) {
+    disabledReason = '请修正已勾选的附加费';
+  }
+  if (!disabledReason && hasBlockingError) {
+    disabledReason = '请修正超限箱型';
+  }
+
+  setCalcButtonState(Boolean(disabledReason), disabledReason);
 }
 
 // ===== 大区切换 =====
@@ -535,19 +587,46 @@ function buildSurchargeList(region) {
     if (chk && extra) {
       chk.addEventListener('change', () => {
         extra.classList.toggle('show', chk.checked);
+        checkFormComplete();
         resultsDiv.classList.remove('show');
       });
     }
     if (chk) {
-      chk.addEventListener('change', () => resultsDiv.classList.remove('show'));
+      chk.addEventListener('change', () => {
+        checkFormComplete();
+        resultsDiv.classList.remove('show');
+      });
     }
     div.querySelectorAll('select, input[type=number]').forEach(el => {
-      el.addEventListener('change', () => resultsDiv.classList.remove('show'));
-      el.addEventListener('input',  () => resultsDiv.classList.remove('show'));
+      el.addEventListener('change', () => {
+        checkFormComplete();
+        resultsDiv.classList.remove('show');
+      });
+      el.addEventListener('input',  () => {
+        checkFormComplete();
+        resultsDiv.classList.remove('show');
+      });
     });
 
     euSurchargeList.appendChild(div);
   });
+  updateSurchargeValidation();
+}
+
+function updateSurchargeValidation() {
+  let hasAnyInvalid = false;
+  euSurchargeList.querySelectorAll('.surcharge-item').forEach(item => {
+    const checked = item.querySelector('input[type=checkbox]')?.checked;
+    let hasInvalid = false;
+    item.querySelectorAll('input[type=number]').forEach(input => {
+      const invalid = Boolean(checked) && !isValidFiniteInput(input);
+      setInputInvalid(input, invalid, '请输入有效数字');
+      if (invalid) hasInvalid = true;
+    });
+    if (hasInvalid) hasAnyInvalid = true;
+    item.classList.toggle('surcharge-invalid', hasInvalid);
+  });
+  return hasAnyInvalid;
 }
 
 function updateRegionDisplay() {
@@ -690,6 +769,10 @@ function calcSurcharges(region, totalBillable, totalBoxCount) {
   items.forEach(item => {
     const chk = document.getElementById(`chk_${item.id}`);
     if (!chk || !chk.checked) return;
+    const row = document.querySelector(`.surcharge-item[data-id="${item.id}"]`);
+    const hasInvalidInput = Array.from(row?.querySelectorAll('input[type=number]') || [])
+      .some(input => !isValidFiniteInput(input));
+    if (hasInvalidInput) return;
     let amount = 0;
     let detail = '';
     if (item.type === 'fixed') {
@@ -744,6 +827,11 @@ function calcEU() {
   const euRate = getValidExchangeRate(euExchangeRateInput);
   if (euRate === null) {
     showCalcError('汇率必须是大于 0 的有效数字。');
+    return;
+  }
+  if (updateSurchargeValidation()) {
+    showCalcError('请修正已勾选的附加费后再计算。');
+    checkFormComplete();
     return;
   }
 
@@ -865,9 +953,18 @@ productSelect.addEventListener('change', () => {
 pickupSelect.addEventListener('change',    () => resultsDiv.classList.remove('show'));
 destTypeSelect.addEventListener('change',  () => resultsDiv.classList.remove('show'));
 isRemoteCheck.addEventListener('change',   () => resultsDiv.classList.remove('show'));
-needCustomsCheck.addEventListener('change', () => resultsDiv.classList.remove('show'));
-customsFeeInput.addEventListener('input',   () => resultsDiv.classList.remove('show'));
-exchangeRateInput.addEventListener('input', () => resultsDiv.classList.remove('show'));
+needCustomsCheck.addEventListener('change', () => {
+  checkFormComplete();
+  resultsDiv.classList.remove('show');
+});
+customsFeeInput.addEventListener('input',   () => {
+  checkFormComplete();
+  resultsDiv.classList.remove('show');
+});
+exchangeRateInput.addEventListener('input', () => {
+  checkFormComplete();
+  resultsDiv.classList.remove('show');
+});
 
 addBoxBtn.addEventListener('click', addBoxGroup);
 document.getElementById('savePresetBtn').addEventListener('click', saveCurrentBoxPreset);
@@ -876,7 +973,10 @@ regionSelect.addEventListener('change', updateRegionDisplay);
 euTaxTypeSelect.addEventListener('change',    () => resultsDiv.classList.remove('show'));
 ukChannelSelect.addEventListener('change',    () => resultsDiv.classList.remove('show'));
 euCountrySelect.addEventListener('change',    () => resultsDiv.classList.remove('show'));
-euExchangeRateInput.addEventListener('input', () => resultsDiv.classList.remove('show'));
+euExchangeRateInput.addEventListener('input', () => {
+  checkFormComplete();
+  resultsDiv.classList.remove('show');
+});
 
 // ===== 点击计算 =====
 
@@ -895,6 +995,11 @@ calcBtn.addEventListener('click', () => {
   const rate = getValidExchangeRate(exchangeRateInput);
   if (rate === null) {
     showCalcError('汇率必须是大于 0 的有效数字。');
+    return;
+  }
+  if (needCustomsCheck.checked && !isValidFiniteInput(customsFeeInput)) {
+    showCalcError('请填写有效报关费后再计算。');
+    checkFormComplete();
     return;
   }
   const toUSD       = rmb => '$' + (rmb / rate).toFixed(1);
@@ -969,7 +1074,7 @@ calcBtn.addEventListener('click', () => {
       <span class="fee-amount">¥${best.baseCost.toFixed(1)}</span>
     </div>`;
 
-  if (declarationFee > 0) {
+  if (needCustomsCheck.checked) {
     feeRows += `
       <div class="fee-row">
         <span class="fee-label">报关费</span>
