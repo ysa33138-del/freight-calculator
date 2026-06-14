@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>运费报价仪表盘 UI Preview</title>
+  <link rel="stylesheet" href="ui-preview-dashboard.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <span class="eyebrow">Freight Quote Dashboard</span>
+      <h1>海运运费快速报价</h1>
+      <p>面向欧美专线的专业运费测算与渠道对比预览</p>
+    </div>
+    <div class="status-pill">
+      <span></span>
+      静态 UI 预览
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="panel quote-panel">
+      <div class="panel-heading">
+        <div>
+          <h2>货物信息</h2>
+          <p>填写目的地、箱型与计费参数</p>
+        </div>
+        <span class="step-badge">01</span>
+      </div>
+
+      <div class="field full">
+        <label>目的地大区</label>
+        <div class="select-like focus">美国海派 <span>⌄</span></div>
+      </div>
+
+      <div class="field-grid three">
+        <div class="field">
+          <label>美国邮编</label>
+          <div class="input-like">97512</div>
+        </div>
+        <div class="field">
+          <label>交货地</label>
+          <div class="select-like">义乌交货 <span>⌄</span></div>
+        </div>
+        <div class="field">
+          <label>产品类型</label>
+          <div class="select-like">电子产品 - 含电池 <span>⌄</span></div>
+        </div>
+      </div>
+
+      <div class="field-grid two">
+        <div class="field">
+          <label>目的地类型</label>
+          <div class="select-like">亚马逊仓（FBA） <span>⌄</span></div>
+        </div>
+        <div class="field check-field">
+          <label>偏远地址</label>
+          <div class="check-row">
+            <span class="checkbox"></span>
+            <strong>偏远地址（UPS/FEDEX偏远邮编）</strong>
+          </div>
+          <p>以承运商实际邮编表为准，可发货后补收。</p>
+        </div>
+      </div>
+
+      <div class="field-grid three">
+        <div class="field check-field compact">
+          <label>单独报关</label>
+          <div class="check-row">
+            <span class="checkbox"></span>
+            <strong>需要单独报关</strong>
+          </div>
+        </div>
+        <div class="field">
+          <label>报关费（元/票）</label>
+          <div class="input-like muted">未填写</div>
+        </div>
+        <div class="field">
+          <label>汇率（USD→RMB）</label>
+          <div class="input-like">6.9</div>
+          <p>美元报价 = 人民币 ÷ 汇率</p>
+        </div>
+      </div>
+
+      <div class="section-title">箱型尺寸</div>
+      <div class="box-card">
+        <div class="box-head">
+          <strong>箱型 #1</strong>
+          <span>计费重 15.3 kg</span>
+        </div>
+        <div class="box-grid">
+          <div><label>长 cm</label><strong>48</strong></div>
+          <div><label>宽 cm</label><strong>29</strong></div>
+          <div><label>高 cm</label><strong>33</strong></div>
+          <div><label>实重 kg/箱</label><strong>15</strong></div>
+          <div><label>箱数</label><strong>1</strong></div>
+        </div>
+      </div>
+
+      <button class="primary-btn" type="button">计算运费</button>
+    </section>
+
+    <aside class="summary-column">
+      <section class="panel result-card">
+        <div class="result-top">
+          <div>
+            <span class="eyebrow">Best Quote</span>
+            <h2>最低价渠道</h2>
+          </div>
+          <span class="zone">美西</span>
+        </div>
+        <div class="carrier">快船 EXX 海派</div>
+        <div class="price-row">
+          <div>
+            <span>总报价</span>
+            <strong>¥359.7</strong>
+            <em>≈ $52.1</em>
+          </div>
+          <p>97512 · 义乌交货 · 21KG+ 档</p>
+        </div>
+        <div class="fee-list">
+          <div><span>基础运费</span><strong>¥329.7</strong></div>
+          <div><span>电子产品资料提示</span><strong>需 MSDS / UN38.3</strong></div>
+          <div><span>最低计费重</span><strong>21 kg</strong></div>
+        </div>
+      </section>
+
+      <section class="panel insight-card">
+        <h3>报价摘要</h3>
+        <div class="metric-grid">
+          <div><span>计费重量</span><strong>21 kg</strong></div>
+          <div><span>派送时效</span><strong>1-2 天</strong></div>
+          <div><span>渠道数量</span><strong>5</strong></div>
+        </div>
+      </section>
+
+      <section class="panel channel-card">
+        <div class="mini-heading">
+          <div>
+            <h3>渠道对比</h3>
+            <p>按总报价从低到高</p>
+          </div>
+          <span>4 条</span>
+        </div>
+        <div class="channel-list">
+          <details class="channel-item best" open>
+            <summary>
+              <div>
+                <strong>快船 EXX</strong>
+                <span>最低价 · 派送 1-2 天</span>
+              </div>
+              <em>¥359.7</em>
+            </summary>
+            <div class="channel-detail">
+              <dl>
+                <div><dt>单价</dt><dd>¥15.7/kg</dd></div>
+                <div><dt>基础运费</dt><dd>¥329.7</dd></div>
+                <div><dt>总报价</dt><dd>¥359.7 / $52.1</dd></div>
+                <div><dt>赔偿</dt><dd>超时赔1元/KG</dd></div>
+              </dl>
+              <p>适合对总价敏感、同时仍需要较快尾程派送的常规 FBA 补货。</p>
+            </div>
+          </details>
+
+          <details class="channel-item">
+            <summary>
+              <div>
+                <strong>美森 MAX</strong>
+                <span>开船后16天内提取</span>
+              </div>
+              <em>¥380.7</em>
+            </summary>
+            <div class="channel-detail">
+              <dl>
+                <div><dt>单价</dt><dd>¥16.7/kg</dd></div>
+                <div><dt>基础运费</dt><dd>¥350.7</dd></div>
+                <div><dt>总报价</dt><dd>¥380.7 / $55.2</dd></div>
+                <div><dt>赔偿</dt><dd>超时赔1元/KG</dd></div>
+              </dl>
+              <p>适合希望在价格和稳定性之间取得平衡的发货计划。</p>
+            </div>
+          </details>
+
+          <details class="channel-item">
+            <summary>
+              <div>
+                <strong>美森正班</strong>
+                <span>开船后15天内提取</span>
+              </div>
+              <em>¥384.9</em>
+            </summary>
+            <div class="channel-detail">
+              <dl>
+                <div><dt>单价</dt><dd>¥16.9/kg</dd></div>
+                <div><dt>基础运费</dt><dd>¥354.9</dd></div>
+                <div><dt>总报价</dt><dd>¥384.9 / $55.8</dd></div>
+                <div><dt>赔偿</dt><dd>超时赔1元/KG</dd></div>
+              </dl>
+              <p>适合时效敏感或需要优先选择成熟稳定渠道的货件。</p>
+            </div>
+          </details>
+
+          <details class="channel-item">
+            <summary>
+              <div>
+                <strong>义乌合德以星限时达</strong>
+                <span>含电池需资料确认</span>
+              </div>
+              <em>¥394.5</em>
+            </summary>
+            <div class="channel-detail">
+              <dl>
+                <div><dt>单价</dt><dd>¥14.5/kg</dd></div>
+                <div><dt>基础运费</dt><dd>¥304.5</dd></div>
+                <div><dt>总报价</dt><dd>¥394.5 / $57.2</dd></div>
+                <div><dt>要求</dt><dd>MSDS / UN38.3</dd></div>
+              </dl>
+              <p>适合义乌交货且资料齐全的含电池电子产品，需先确认承运要求。</p>
+            </div>
+          </details>
+        </div>
+      </section>
+    </aside>
+
+    <section class="panel comparison-panel">
+      <div class="comparison-head">
+        <div>
+          <span class="eyebrow">Detailed Comparison</span>
+          <h2>详细渠道对比</h2>
+          <p>保留完整报价信息，便于业务核价、选线和客户沟通。</p>
+        </div>
+        <div class="table-meta">美国海派 · 97512 · 义乌交货</div>
+      </div>
+
+      <div class="quote-table-wrap">
+        <table class="quote-table">
+          <thead>
+            <tr>
+              <th>渠道</th>
+              <th>预计时效</th>
+              <th>单价</th>
+              <th>基础运费</th>
+              <th>总报价</th>
+              <th>备注 / 要求</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="lowest">
+              <td>
+                <strong>快船 EXX</strong>
+                <span class="tag-best">最低价</span>
+              </td>
+              <td>派送 1-2 天</td>
+              <td>¥15.7/kg</td>
+              <td>¥329.7</td>
+              <td class="quote-money">¥359.7 <em>/ $52.1</em></td>
+              <td>开船后16天内提取，超时赔1元/KG。</td>
+            </tr>
+            <tr>
+              <td><strong>美森 MAX</strong></td>
+              <td>派送 1-2 天</td>
+              <td>¥16.7/kg</td>
+              <td>¥350.7</td>
+              <td class="quote-money">¥380.7 <em>/ $55.2</em></td>
+              <td>时效稳定，开船后16天内提取。</td>
+            </tr>
+            <tr>
+              <td><strong>美森正班</strong></td>
+              <td>派送 1-2 天</td>
+              <td>¥16.9/kg</td>
+              <td>¥354.9</td>
+              <td class="quote-money">¥384.9 <em>/ $55.8</em></td>
+              <td>开船后15天内提取，适合时效敏感货物。</td>
+            </tr>
+            <tr>
+              <td><strong>义乌合德以星限时达</strong></td>
+              <td>派送 1-2 天</td>
+              <td>¥14.5/kg</td>
+              <td>¥304.5</td>
+              <td class="quote-money">¥394.5 <em>/ $57.2</em></td>
+              <td>含电池需提供 MSDS 及 UN38.3 测试报告。</td>
+            </tr>
+            <tr>
+              <td><strong>普船洛杉矶</strong></td>
+              <td>派送 1-2 天</td>
+              <td>¥13.7/kg</td>
+              <td>¥287.7</td>
+              <td class="quote-money">¥407.7 <em>/ $59.1</em></td>
+              <td>预算型渠道，适合非紧急补货。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

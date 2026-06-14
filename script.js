@@ -146,6 +146,7 @@ const customsFeeInput   = document.getElementById('customsFee');
 const exchangeRateInput = document.getElementById('exchangeRate');
 const pickupSelect      = document.getElementById('pickupCity');
 const regionSelect      = document.getElementById('regionSelect');
+const regionTabs        = document.querySelectorAll('[data-region]');
 const usControls        = document.getElementById('usControls');
 const euControls        = document.getElementById('euControls');
 const euTaxTypeSelect   = document.getElementById('euTaxType');
@@ -631,6 +632,11 @@ function updateSurchargeValidation() {
 
 function updateRegionDisplay() {
   const region = regionSelect.value;
+  regionTabs.forEach(tab => {
+    const active = tab.dataset.region === region;
+    tab.classList.toggle('is-active', active);
+    tab.setAttribute('aria-selected', String(active));
+  });
   usControls.style.display        = region === 'us' ? ''   : 'none';
   euControls.style.display        = region !== 'us' ? ''   : 'none';
   ukChannelGroup.style.display    = region === 'uk' ? ''   : 'none';
@@ -970,6 +976,13 @@ addBoxBtn.addEventListener('click', addBoxGroup);
 document.getElementById('savePresetBtn').addEventListener('click', saveCurrentBoxPreset);
 
 regionSelect.addEventListener('change', updateRegionDisplay);
+regionTabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    if (regionSelect.value === tab.dataset.region) return;
+    regionSelect.value = tab.dataset.region;
+    updateRegionDisplay();
+  });
+});
 euTaxTypeSelect.addEventListener('change',    () => resultsDiv.classList.remove('show'));
 ukChannelSelect.addEventListener('change',    () => resultsDiv.classList.remove('show'));
 euCountrySelect.addEventListener('change',    () => resultsDiv.classList.remove('show'));
@@ -1070,8 +1083,8 @@ calcBtn.addEventListener('click', () => {
   feeRows += `
     <div class="fee-row">
       <span class="fee-label">基础运费</span>
-      <span class="fee-detail">${totalBillable} kg × ${best.unitPrice.toFixed(1)} 元/kg（${tierLabel} 档）${minApplied ? `<br><span style="opacity:.65;font-size:.85em;">实际计费重 ${rawTotalBillable} kg，不足最低起运 21 kg，按 21 kg 计费</span>` : ''}</span>
-      <span class="fee-amount">¥${best.baseCost.toFixed(1)}</span>
+      <span class="fee-detail" data-quote-field="baseDetail">${totalBillable} kg × ${best.unitPrice.toFixed(1)} 元/kg（${tierLabel} 档）${minApplied ? `<br><span style="opacity:.65;font-size:.85em;">实际计费重 ${rawTotalBillable} kg，不足最低起运 21 kg，按 21 kg 计费</span>` : ''}</span>
+      <span class="fee-amount" data-quote-field="baseAmount">¥${best.baseCost.toFixed(1)}</span>
     </div>`;
 
   if (needCustomsCheck.checked) {
@@ -1124,7 +1137,7 @@ calcBtn.addEventListener('click', () => {
     <div class="fee-row fee-total">
       <span class="fee-label">合　计</span>
       <span class="fee-detail"></span>
-      <span class="fee-amount">¥${best.total.toFixed(1)}（≈ ${toUSD(best.total)}）</span>
+      <span class="fee-amount" data-quote-field="feeTotal">¥${best.total.toFixed(1)}（≈ ${toUSD(best.total)}）</span>
     </div>`;
 
   // 所有渠道表格
@@ -1132,11 +1145,12 @@ calcBtn.addEventListener('click', () => {
   rows.forEach(({ ch, unitPrice, baseCost, total }, idx) => {
     const isCheapest = idx === 0;
     tableRows += `
-      <tr${isCheapest ? ' class="cheapest"' : ''}>
+      <tr${isCheapest ? ' class="cheapest selected"' : ''} data-channel-index="${idx}" tabindex="0" aria-selected="${isCheapest}">
         <td data-label="渠道">
           <span class="channel-name">
-            ${ch.name}
+            <span class="channel-title">${ch.name}</span>
             ${isCheapest ? '<span class="cheapest-badge">最低价</span>' : ''}
+            ${isCheapest ? '<span class="selected-badge">查看中</span>' : ''}
           </span>
           <span class="channel-delivery">派送 ${ch.delivery[zone]}</span>
         </td>
@@ -1165,14 +1179,14 @@ calcBtn.addEventListener('click', () => {
     <div class="result-best-card">
       <div class="result-best-header">
         <div>
-          <div class="result-best-label">最低价渠道</div>
-          <div class="result-best-name">${best.ch.name}</div>
-          <div class="result-best-delivery">派送 ${best.ch.delivery[zone]}</div>
+          <div class="result-best-label" data-quote-field="roleLabel">最低价渠道</div>
+          <div class="result-best-name" data-quote-field="name">${best.ch.name}</div>
+          <div class="result-best-delivery" data-quote-field="delivery">派送 ${best.ch.delivery[zone]}</div>
         </div>
         <div class="result-best-price-wrap">
           <div class="result-best-price-label">总报价</div>
-          <div class="result-best-price">¥${best.total.toFixed(1)}</div>
-          <div style="font-size:.92rem;color:#16a34a;font-weight:600;margin-top:3px">≈ ${toUSD(best.total)}</div>
+          <div class="result-best-price" data-quote-field="total">¥${best.total.toFixed(1)}</div>
+          <div data-quote-field="usd" style="font-size:.92rem;color:#16a34a;font-weight:600;margin-top:3px">≈ ${toUSD(best.total)}</div>
         </div>
       </div>
       <div class="fee-breakdown">
@@ -1219,6 +1233,56 @@ calcBtn.addEventListener('click', () => {
     this.textContent = isOpen
       ? `▼ 查看所有 ${rows.length} 个渠道对比`
       : `▲ 收起渠道对比`;
+  });
+
+  function setSelectedChannel(index) {
+    const selected = rows[index] || rows[0];
+    const selectedIndex = rows.indexOf(selected);
+    const minNote = minApplied
+      ? `<br><span style="opacity:.65;font-size:.85em;">实际计费重 ${rawTotalBillable} kg，不足最低起运 21 kg，按 21 kg 计费</span>`
+      : '';
+    const setField = (name, value) => {
+      const el = resultsDiv.querySelector(`[data-quote-field="${name}"]`);
+      if (el) el.innerHTML = value;
+    };
+
+    setField('roleLabel', selectedIndex === 0 ? '最低价渠道' : '当前查看渠道');
+    setField('name', selected.ch.name);
+    setField('delivery', `派送 ${selected.ch.delivery[zone]}`);
+    setField('total', `¥${selected.total.toFixed(1)}`);
+    setField('usd', `≈ ${toUSD(selected.total)}`);
+    setField('baseDetail', `${totalBillable} kg × ${selected.unitPrice.toFixed(1)} 元/kg（${tierLabel} 档）${minNote}`);
+    setField('baseAmount', `¥${selected.baseCost.toFixed(1)}`);
+    setField('feeTotal', `¥${selected.total.toFixed(1)}（≈ ${toUSD(selected.total)}）`);
+
+    document.querySelectorAll('#allChannelsTable tbody tr[data-channel-index]').forEach(row => {
+      const rowIndex = Number(row.dataset.channelIndex);
+      const rowData = rows[rowIndex];
+      const isLowest = rowIndex === 0;
+      const isSelected = rowIndex === selectedIndex;
+      const channelName = row.querySelector('.channel-name');
+
+      row.classList.toggle('cheapest', isLowest);
+      row.classList.toggle('selected', isSelected);
+      row.setAttribute('aria-selected', String(isSelected));
+
+      if (channelName && rowData) {
+        channelName.innerHTML =
+          `<span class="channel-title">${rowData.ch.name}</span>` +
+          (isLowest ? '<span class="cheapest-badge">最低价</span>' : '') +
+          (isSelected ? '<span class="selected-badge">查看中</span>' : '');
+      }
+    });
+  }
+
+  document.querySelectorAll('#allChannelsTable tbody tr[data-channel-index]').forEach(row => {
+    row.addEventListener('click', () => setSelectedChannel(Number(row.dataset.channelIndex)));
+    row.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        setSelectedChannel(Number(row.dataset.channelIndex));
+      }
+    });
   });
 
   document.getElementById('usTermsToggleBtn').addEventListener('click', function () {

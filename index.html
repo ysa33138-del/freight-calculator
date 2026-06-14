@@ -16,15 +16,33 @@
 
   <div class="container">
 
-    <div class="card">
-      <div class="card-title">货物信息</div>
+    <section class="region-switcher" aria-label="选择海运业务区域">
+      <div class="section-label region-switcher-title">业务区域</div>
+      <div class="region-tabs" role="tablist" aria-label="海运区域">
+        <button class="region-tab is-active" type="button" role="tab" aria-selected="true" data-region="us">
+          <span class="region-tab-name">美国海运</span>
+          <span class="region-tab-desc">适合美国 FBA、商业地址、私人地址海派报价</span>
+        </button>
+        <button class="region-tab" type="button" role="tab" aria-selected="false" data-region="uk">
+          <span class="region-tab-name">英国海运</span>
+          <span class="region-tab-desc">适合英国 DPD、包税 / 不包税海运报价</span>
+        </button>
+        <button class="region-tab" type="button" role="tab" aria-selected="false" data-region="eu">
+          <span class="region-tab-name">欧洲海运</span>
+          <span class="region-tab-desc">适合德国、法国、意大利、西班牙等欧洲大陆海运报价</span>
+        </button>
+      </div>
+    </section>
 
-      <div class="form-group region-selector-group">
-        <label for="regionSelect">目的地大区</label>
+    <div class="card">
+      <div class="card-title">基础信息</div>
+
+      <div class="form-group region-selector-group legacy-region-select">
+        <label for="regionSelect">当前海运区域</label>
         <select id="regionSelect">
-          <option value="us">美国海派</option>
-          <option value="uk">英国</option>
-          <option value="eu">欧洲大陆</option>
+          <option value="us">美国海运</option>
+          <option value="uk">英国海运</option>
+          <option value="eu">欧洲海运</option>
         </select>
       </div>
 
@@ -173,7 +191,7 @@
       <button id="addBoxBtn" class="btn-add-box" type="button">+ 添加另一种箱型</button>
 
       <div id="euSurchargeSection" style="display:none">
-        <div class="section-label">附加费（可勾选）</div>
+        <div class="section-label">附加费（可选）</div>
         <div id="euSurchargeList" class="surcharge-list"></div>
       </div>
 
@@ -182,7 +200,10 @@
       </div>
     </div>
 
-    <div id="results"></div>
+    <section class="results-section" aria-live="polite">
+      <div class="section-label results-section-title">报价结果</div>
+      <div id="results"></div>
+    </section>
 
   </div>
 

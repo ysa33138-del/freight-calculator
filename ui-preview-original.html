@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>原始流程版运费报价 UI Preview</title>
+  <link rel="stylesheet" href="ui-preview-original.css" />
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <span class="eyebrow">Chuangzhan International · Freight Quote</span>
+      <h1>海运运费快速报价</h1>
+      <p>保留原始输入流程，升级为更专业、清晰、可信赖的报价工作台。</p>
+      <span class="service-pill">美国海派 · 义乌交货 · 电子产品含电池</span>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="card form-card">
+      <div class="card-title">
+        <div>
+          <h2>货物信息</h2>
+          <p>目的地、产品类型与基础计费参数</p>
+        </div>
+        <span>01</span>
+      </div>
+
+      <div class="field full">
+        <label>目的地大区</label>
+        <div class="select-control active">美国海派 <span>⌄</span></div>
+      </div>
+
+      <div class="form-grid three">
+        <div class="field">
+          <label>美国邮编</label>
+          <div class="input-control">97512</div>
+        </div>
+        <div class="field">
+          <label>交货地</label>
+          <div class="select-control">义乌交货 <span>⌄</span></div>
+        </div>
+        <div class="field">
+          <label>产品类型</label>
+          <div class="select-control">电子产品 - 含电池 <span>⌄</span></div>
+        </div>
+      </div>
+
+      <div class="form-grid two">
+        <div class="field">
+          <label>目的地类型</label>
+          <div class="select-control">亚马逊仓（FBA） <span>⌄</span></div>
+        </div>
+        <div class="field check-field">
+          <label>偏远地址</label>
+          <div class="check-line">
+            <span class="fake-check"></span>
+            <strong>偏远地址（UPS/FEDEX偏远邮编）</strong>
+          </div>
+          <p>偏远与否以承运商实际邮编表为准，可发货后补收。</p>
+        </div>
+      </div>
+
+      <div class="form-grid three">
+        <div class="field check-field">
+          <label>单独报关</label>
+          <div class="check-line">
+            <span class="fake-check"></span>
+            <strong>需要单独报关</strong>
+          </div>
+        </div>
+        <div class="field">
+          <label>报关费（元/票）</label>
+          <div class="input-control muted">未填写</div>
+        </div>
+        <div class="field">
+          <label>汇率（USD→RMB）</label>
+          <div class="input-control">6.9</div>
+          <p>美元报价 = 人民币 ÷ 汇率，可按当日临时调整。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card box-section">
+      <div class="section-heading">
+        <div>
+          <h2>箱型尺寸</h2>
+          <p>输入箱规后自动计算体积重与计费重</p>
+        </div>
+        <button class="ghost-btn" type="button">+ 保存当前箱型</button>
+      </div>
+
+      <div class="box-card">
+        <div class="box-header">
+          <strong>箱型 #1</strong>
+          <span>计费重 15.3 kg/箱</span>
+        </div>
+        <div class="box-grid">
+          <div><label>长 cm</label><strong>48</strong></div>
+          <div><label>宽 cm</label><strong>29</strong></div>
+          <div><label>高 cm</label><strong>33</strong></div>
+          <div><label>实重 kg/箱</label><strong>15</strong></div>
+          <div><label>箱数</label><strong>1</strong></div>
+        </div>
+        <div class="box-note">体积重 7.7 kg · 按实重计费 · 最低计费重将按渠道规则应用</div>
+      </div>
+    </section>
+
+    <section class="card surcharge-section">
+      <div class="section-heading compact">
+        <div>
+          <h2>附加费预览</h2>
+          <p>含电池产品需重点确认资料要求</p>
+        </div>
+      </div>
+      <div class="surcharge-grid">
+        <div class="surcharge-item selected">
+          <span></span>
+          <div><strong>电子产品资料</strong><p>MSDS / UN38.3 测试报告</p></div>
+        </div>
+        <div class="surcharge-item">
+          <span></span>
+          <div><strong>偏远地址</strong><p>未勾选</p></div>
+        </div>
+        <div class="surcharge-item">
+          <span></span>
+          <div><strong>单独报关</strong><p>未勾选</p></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="action-row">
+      <button class="primary-btn" type="button">计算运费</button>
+    </div>
+
+    <section class="result-card">
+      <div class="result-header">
+        <div class="result-left">
+          <span class="eyebrow" id="selectedChannelBadge">SELECTED CHANNEL QUOTE · 默认最低价</span>
+          <h2 id="selectedChannelName">快船 EXX 海派</h2>
+          <p id="selectedChannelMeta">美西 · 97512 · 义乌交货 · 派送 1-2 天 · 21KG+ 档</p>
+        </div>
+        <div class="result-price">
+          <span>当前选择渠道</span>
+          <strong id="selectedChannelTotal">¥359.7</strong>
+          <em id="selectedChannelUsd">≈ $52.1</em>
+        </div>
+      </div>
+      <div class="fee-breakdown">
+        <div class="fee-item fee-main">
+          <span>基础运费</span>
+          <strong id="selectedFreightLine">21 kg × ¥15.7/kg（21KG+ 档）</strong>
+          <em id="selectedChannelBase">¥329.7</em>
+        </div>
+        <div class="fee-item">
+          <span>报关费</span>
+          <strong id="selectedCustomsFee">单独报关：¥30.0</strong>
+        </div>
+        <div class="fee-item fee-main">
+          <span>附加费 / 资料要求</span>
+          <strong id="selectedExtraFee">—</strong>
+          <p id="selectedChannelRemark">开船后16天内提取，超时赔1元/KG。</p>
+        </div>
+        <div class="fee-item fee-total">
+          <span>合计</span>
+          <strong><span id="selectedBreakdownTotal">¥359.7</span> / <span id="selectedBreakdownUsd">$52.1</span></strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="card comparison-card">
+      <div class="comparison-head">
+        <div>
+          <h2>详细渠道对比</h2>
+          <p>按总报价从低到高排序，保留业务判断所需信息。</p>
+        </div>
+        <span>5 个可用渠道</span>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>渠道</th>
+              <th>预计派送 / 提取</th>
+              <th>单价</th>
+              <th>基础运费</th>
+              <th>总报价</th>
+              <th>备注 / 要求 / 赔偿</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="best-row selected-row" tabindex="0"
+                data-channel="快船 EXX 海派"
+                data-label="SELECTED CHANNEL QUOTE · 默认最低价"
+                data-meta="美西 · 97512 · 义乌交货 · 派送 1-2 天 · 21KG+ 档"
+                data-unit="¥15.7/kg"
+                data-freight-line="21 kg × ¥15.7/kg（21KG+ 档）"
+                data-base="¥329.7"
+                data-customs="单独报关：¥30.0"
+                data-extra="—"
+                data-total="¥359.7"
+                data-usd="≈ $52.1"
+                data-usd-plain="$52.1"
+                data-remark="开船后16天内提取，超时赔1元/KG。">
+              <td><strong>快船 EXX</strong><span>最低价</span></td>
+              <td>派送 1-2 天</td>
+              <td>¥15.7/kg</td>
+              <td>¥329.7</td>
+              <td class="money">¥359.7 <em>/ $52.1</em></td>
+              <td>开船后16天内提取，超时赔1元/KG。</td>
+            </tr>
+            <tr tabindex="0"
+                data-channel="美森 MAX 海派"
+                data-label="SELECTED CHANNEL QUOTE · 已选择渠道"
+                data-meta="美西 · 97512 · 义乌交货 · 派送 1-2 天 · 21KG+ 档"
+                data-unit="¥16.7/kg"
+                data-freight-line="21 kg × ¥16.7/kg（21KG+ 档）"
+                data-base="¥350.7"
+                data-customs="单独报关：¥30.0"
+                data-extra="—"
+                data-total="¥380.7"
+                data-usd="≈ $55.2"
+                data-usd-plain="$55.2"
+                data-remark="时效稳定，开船后16天内提取。">
+              <td><strong>美森 MAX</strong></td>
+              <td>派送 1-2 天</td>
+              <td>¥16.7/kg</td>
+              <td>¥350.7</td>
+              <td class="money">¥380.7 <em>/ $55.2</em></td>
+              <td>时效稳定，开船后16天内提取。</td>
+            </tr>
+            <tr tabindex="0"
+                data-channel="美森正班海派"
+                data-label="SELECTED CHANNEL QUOTE · 已选择渠道"
+                data-meta="美西 · 97512 · 义乌交货 · 派送 1-2 天 · 21KG+ 档"
+                data-unit="¥16.9/kg"
+                data-freight-line="21 kg × ¥16.9/kg（21KG+ 档）"
+                data-base="¥354.9"
+                data-customs="单独报关：¥30.0"
+                data-extra="—"
+                data-total="¥384.9"
+                data-usd="≈ $55.8"
+                data-usd-plain="$55.8"
+                data-remark="开船后15天内提取，适合时效敏感货物。">
+              <td><strong>美森正班</strong></td>
+              <td>派送 1-2 天</td>
+              <td>¥16.9/kg</td>
+              <td>¥354.9</td>
+              <td class="money">¥384.9 <em>/ $55.8</em></td>
+              <td>开船后15天内提取，适合时效敏感货物。</td>
+            </tr>
+            <tr tabindex="0"
+                data-channel="义乌合德以星限时达"
+                data-label="SELECTED CHANNEL QUOTE · 已选择渠道"
+                data-meta="美西 · 97512 · 义乌交货 · 派送 1-2 天 · 21KG+ 档"
+                data-unit="¥14.5/kg"
+                data-freight-line="21 kg × ¥14.5/kg（21KG+ 档）"
+                data-base="¥304.5"
+                data-customs="单独报关：¥30.0"
+                data-extra="含电池资料要求：MSDS / UN38.3；渠道附加费：¥60.0"
+                data-total="¥394.5"
+                data-usd="≈ $57.2"
+                data-usd-plain="$57.2"
+                data-remark="含电池需提供 MSDS 及 UN38.3 测试报告。">
+              <td><strong>义乌合德以星限时达</strong></td>
+              <td>派送 1-2 天</td>
+              <td>¥14.5/kg</td>
+              <td>¥304.5</td>
+              <td class="money">¥394.5 <em>/ $57.2</em></td>
+              <td>含电池需提供 MSDS 及 UN38.3 测试报告。</td>
+            </tr>
+            <tr tabindex="0"
+                data-channel="普船洛杉矶"
+                data-label="SELECTED CHANNEL QUOTE · 已选择渠道"
+                data-meta="美西 · 97512 · 义乌交货 · 派送 1-2 天 · 21KG+ 档"
+                data-unit="¥13.7/kg"
+                data-freight-line="21 kg × ¥13.7/kg（21KG+ 档）"
+                data-base="¥287.7"
+                data-customs="单独报关：¥30.0"
+                data-extra="渠道附加费：¥90.0"
+                data-total="¥407.7"
+                data-usd="≈ $59.1"
+                data-usd-plain="$59.1"
+                data-remark="预算型渠道，适合非紧急补货。">
+              <td><strong>普船洛杉矶</strong></td>
+              <td>派送 1-2 天</td>
+              <td>¥13.7/kg</td>
+              <td>¥287.7</td>
+              <td class="money">¥407.7 <em>/ $59.1</em></td>
+              <td>预算型渠道，适合非紧急补货。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="terms-card">
+      <strong>接单前检查清单</strong>
+      <p>含电池产品需提供 MSDS 及 UN38.3 测试报告；实际接收要求以货代和承运商最终确认为准。</p>
+    </section>
+  </main>
+  <script>
+    const quoteRows = document.querySelectorAll('.comparison-card tbody tr');
+    const fields = {
+      badge: document.getElementById('selectedChannelBadge'),
+      name: document.getElementById('selectedChannelName'),
+      meta: document.getElementById('selectedChannelMeta'),
+      freightLine: document.getElementById('selectedFreightLine'),
+      base: document.getElementById('selectedChannelBase'),
+      customs: document.getElementById('selectedCustomsFee'),
+      extra: document.getElementById('selectedExtraFee'),
+      total: document.getElementById('selectedChannelTotal'),
+      usd: document.getElementById('selectedChannelUsd'),
+      breakdownTotal: document.getElementById('selectedBreakdownTotal'),
+      breakdownUsd: document.getElementById('selectedBreakdownUsd'),
+      remark: document.getElementById('selectedChannelRemark'),
+    };
+
+    function selectQuote(row) {
+      quoteRows.forEach(item => item.classList.remove('selected-row'));
+      row.classList.add('selected-row');
+      fields.badge.textContent = row.dataset.label || 'SELECTED CHANNEL QUOTE · 已选择渠道';
+      fields.name.textContent = row.dataset.channel;
+      fields.meta.textContent = row.dataset.meta;
+      fields.freightLine.textContent = row.dataset.freightLine || row.dataset.unit || '—';
+      fields.base.textContent = row.dataset.base;
+      fields.customs.textContent = row.dataset.customs || '—';
+      fields.extra.textContent = row.dataset.extra || '—';
+      fields.total.textContent = row.dataset.total;
+      fields.usd.textContent = row.dataset.usd;
+      fields.breakdownTotal.textContent = row.dataset.total;
+      fields.breakdownUsd.textContent = row.dataset.usdPlain || row.dataset.usd.replace('≈ ', '');
+      fields.remark.textContent = row.dataset.remark;
+    }
+
+    quoteRows.forEach(row => {
+      row.addEventListener('click', () => selectQuote(row));
+      row.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          selectQuote(row);
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>海运运费快速报价 · UI Preview</title>
+  <link rel="stylesheet" href="ui-preview.css" />
+</head>
+<body>
+
+  <header class="header">
+    <div class="header-inner">
+      <span class="header-kicker">Freight Quotation SaaS Preview</span>
+      <h1>海运运费快速报价</h1>
+      <p>输入邮编和货物尺寸，即时查看所有渠道报价对比</p>
+      <span class="tag">创展国际 · 欧美专线 · 海派</span>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <div class="card">
+      <div class="card-title">货物信息</div>
+
+      <div class="form-group region-selector-group">
+        <label for="regionSelect">目的地大区</label>
+        <select id="regionSelect">
+          <option value="us" selected>美国海派</option>
+          <option value="uk">英国</option>
+          <option value="eu">欧洲大陆</option>
+        </select>
+      </div>
+
+      <div id="usControls">
+        <div class="form-grid-top" style="grid-template-columns:1fr 1fr 1fr">
+          <div class="form-group">
+            <label for="zip">美国邮编</label>
+            <input
+              id="zip"
+              type="text"
+              inputmode="numeric"
+              maxlength="5"
+              value="97512"
+              placeholder="如 90001"
+              autocomplete="off"
+            />
+            <div id="zipHint" class="input-hint zone-west">美西分区 · 可匹配海派渠道</div>
+          </div>
+          <div class="form-group">
+            <label for="pickupCity">交货地</label>
+            <select id="pickupCity">
+              <option value="shenzhen">深圳/广州交货</option>
+              <option value="yiwu" selected>义乌交货</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="productType">产品类型</label>
+            <select id="productType">
+              <option value="normal">普通货（无附加费）</option>
+              <option value="textile">纺织/鞋包/帽子（A 类，+1元/kg）</option>
+              <option value="toy">玩具（6岁以下，+1元/kg）</option>
+              <option value="battery" selected>电子产品 - 含电池</option>
+              <option value="nobattery">电子产品 - 不含电池</option>
+              <option value="wood">木制品/竹藤（商检费 +0.5元/kg）</option>
+              <option value="highvalue">高价值（货值&gt;$15/kg，+1元/kg）</option>
+            </select>
+            <div id="productHint" class="input-hint hint-warn">需提供 MSDS 及 UN38.3 测试报告</div>
+          </div>
+        </div>
+
+        <div class="form-grid-top" style="margin-top:16px">
+          <div class="form-group">
+            <label for="destType">目的地类型</label>
+            <select id="destType">
+              <option value="amazon" selected>亚马逊仓（FBA）</option>
+              <option value="commercial">非亚马逊 · 商业地址</option>
+              <option value="residential">非亚马逊 · 私人住宅（+25元/件）</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>偏远地址</label>
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="isRemote" />
+                <span>偏远地址（UPS/FEDEX偏远邮编）</span>
+              </label>
+              <div class="input-hint">偏远与否以UPS/FEDEX实际邮编表为准，可发货后6个月内补收</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-grid-top" style="margin-top:12px;grid-template-columns:1fr 1fr 1fr">
+          <div class="form-group">
+            <label>单独报关</label>
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="needCustoms" checked />
+                <span>需要单独报关</span>
+              </label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="customsFee">报关费（元/票）</label>
+            <input
+              id="customsFee"
+              type="number"
+              min="0"
+              step="1"
+              value="350"
+              placeholder="报关费(元/票)"
+            />
+          </div>
+          <div class="form-group">
+            <label for="exchangeRate">汇率 (USD→RMB)</label>
+            <input
+              id="exchangeRate"
+              type="number"
+              min="0.1"
+              step="0.01"
+              value="6.9"
+              placeholder="如 6.9"
+            />
+            <div class="input-hint">美元报价 = 人民币 ÷ 汇率，可按当日临时调整</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="euControls" style="display:none">
+        <div class="form-grid-top" style="grid-template-columns:1fr 1fr 1fr;margin-top:16px">
+          <div class="form-group">
+            <label for="euTaxType">报价类型</label>
+            <select id="euTaxType">
+              <option value="taxed">包税</option>
+              <option value="untaxed">不包税</option>
+            </select>
+          </div>
+          <div id="ukChannelGroup" class="form-group">
+            <label for="ukChannel">渠道</label>
+            <select id="ukChannel">
+              <option value="uk_dpd">英国DPD（普通货）</option>
+              <option value="uk_battery">英国电池专线（含电池）</option>
+            </select>
+          </div>
+          <div id="euCountryGroup" class="form-group" style="display:none">
+            <label for="euCountry">目的国家</label>
+            <select id="euCountry">
+              <option value="de">德国</option>
+              <option value="nl_cz_pl">荷兰 / 捷克 / 波兰</option>
+              <option value="lu_be_sk_hu_fr">卢森堡 / 比利时 / 斯洛伐克 / 匈牙利 / 法国</option>
+              <option value="lt_at_dk_hr_es_it">立陶宛 / 奥地利 / 丹麦 / 克罗地亚 / 西班牙 / 意大利</option>
+              <option value="pt_se_ee">葡萄牙 / 瑞典 / 爱沙尼亚</option>
+              <option value="ro_bg_ie_fi_gr_si_lv">罗马尼亚 / 保加利亚 / 爱尔兰 / 芬兰 / 希腊 / 斯洛文尼亚 / 拉脱维亚</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="euExchangeRate">汇率 (USD→RMB)</label>
+            <input
+              id="euExchangeRate"
+              type="number"
+              min="0.1"
+              step="0.01"
+              value="6.9"
+              placeholder="如 6.9"
+            />
+            <div class="input-hint">美元报价 = 人民币 ÷ 汇率，可按当日临时调整</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-label">箱型尺寸</div>
+      <div id="boxPresetBar" class="box-preset-bar">
+        <div class="box-preset-chips" id="boxPresetChips">
+          <button class="box-preset-chip" type="button">
+            <span class="chip-text">
+              <span class="chip-name">厨房小电器</span>
+              <span class="chip-dims">48×29×33cm · 15kg · 1箱</span>
+            </span>
+            <span class="chip-edit">改</span>
+            <span class="chip-del">×</span>
+          </button>
+          <button class="box-preset-chip" type="button">
+            <span class="chip-text">
+              <span class="chip-name">灯具套装</span>
+              <span class="chip-dims">62×44×38cm · 18kg · 3箱</span>
+            </span>
+            <span class="chip-edit">改</span>
+            <span class="chip-del">×</span>
+          </button>
+        </div>
+        <button id="savePresetBtn" class="btn-save-preset" type="button">＋ 保存当前箱型</button>
+      </div>
+      <div id="boxGroups">
+        <div class="box-group-card" id="box-group-1">
+          <div class="box-group-header">
+            <span class="box-group-label">箱型 #1</span>
+            <button class="btn-remove-box" type="button">× 删除</button>
+          </div>
+          <div class="box-inputs">
+            <div class="box-input-item">
+              <label>长 cm</label>
+              <input type="number" class="box-l" min="1" step="0.1" value="48" placeholder="长" />
+            </div>
+            <div class="box-input-item">
+              <label>宽 cm</label>
+              <input type="number" class="box-w" min="1" step="0.1" value="29" placeholder="宽" />
+            </div>
+            <div class="box-input-item">
+              <label>高 cm</label>
+              <input type="number" class="box-h" min="1" step="0.1" value="33" placeholder="高" />
+            </div>
+            <div class="box-input-item">
+              <label>实重 kg/箱</label>
+              <input type="number" class="box-weight" min="0.1" step="0.1" value="15" placeholder="实重" />
+            </div>
+            <div class="box-input-item">
+              <label>箱数</label>
+              <input type="number" class="box-qty" min="1" step="1" value="1" placeholder="1" />
+            </div>
+          </div>
+          <div class="box-preview show">计费重：<span>15.3 kg/箱 × 1 箱 = 15.3 kg</span>&emsp;实重 15 kg · 体积重 15.3 kg</div>
+          <div class="box-msgs"></div>
+        </div>
+      </div>
+
+      <button id="addBoxBtn" class="btn-add-box" type="button">+ 添加另一种箱型</button>
+
+      <div id="euSurchargeSection" style="display:none">
+        <div class="section-label">附加费（可勾选）</div>
+        <div id="euSurchargeList" class="surcharge-list"></div>
+      </div>
+
+      <div class="btn-wrap">
+        <button id="calcBtn" class="btn-calc">计算运费</button>
+      </div>
+    </div>
+
+    <div id="results" class="show">
+      <div class="result-meta">
+        总计费重 <strong>21 kg</strong>（共 1 种箱型）&nbsp;·&nbsp;
+        体积 <strong>0.046 m³</strong>&nbsp;·&nbsp;
+        实重 <strong>15 kg</strong>&nbsp;·&nbsp;
+        目的地类型：亚马逊仓（FBA）&nbsp;·&nbsp;
+        分区：<span class="zone-badge west">美西</span>&nbsp;·&nbsp;
+        邮编 97512&nbsp;·&nbsp;
+        适用档位：<strong>21KG+</strong>
+      </div>
+
+      <div class="result-best-card">
+        <div class="result-best-header">
+          <div>
+            <div class="result-best-label" data-quote-field="roleLabel">最低价渠道</div>
+            <div class="result-best-name" data-quote-field="name">义乌合德以星限时达</div>
+            <div class="result-best-delivery" data-quote-field="time">派送 1-2 天</div>
+          </div>
+          <div class="result-best-price-wrap">
+            <div class="result-best-price-label">总报价</div>
+            <div class="result-best-price" data-quote-field="total">¥684.5</div>
+            <div class="result-best-usd" data-quote-field="usd">≈ $99.2</div>
+          </div>
+        </div>
+        <div class="fee-breakdown">
+          <div class="fee-row">
+            <span class="fee-label">基础运费</span>
+            <span class="fee-detail" data-quote-field="baseDetail">21 kg × 14.5 元/kg（21KG+ 档）<br><span style="opacity:.65;font-size:.85em;">实际计费重 15.3 kg，不足最低起运 21 kg，按 21 kg 计费</span></span>
+            <span class="fee-amount" data-quote-field="baseFreight">¥304.5</span>
+          </div>
+          <div class="fee-row">
+            <span class="fee-label">报关费</span>
+            <span class="fee-detail">单独报关</span>
+            <span class="fee-amount" data-quote-field="customsFee">¥350</span>
+          </div>
+          <div class="fee-row">
+            <span class="fee-label">偏远附加费</span>
+            <span class="fee-detail">亚马逊偏远地址 · 2元/kg × 21 kg</span>
+            <span class="fee-amount" data-quote-field="remoteSurcharge">¥42.0</span>
+          </div>
+          <div class="fee-row quote-note-row">
+            <span class="fee-label">备注</span>
+            <span class="fee-detail" data-quote-field="note">含电池需提供 MSDS 及 UN38.3 测试报告。</span>
+            <span class="fee-amount"></span>
+          </div>
+          <div class="fee-row fee-total">
+            <span class="fee-label">合　计</span>
+            <span class="fee-detail"></span>
+            <span class="fee-amount" data-quote-field="feeTotal">¥684.5（≈ $99.2）</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="all-channels-wrap is-expanded" id="comparisonSection">
+        <button class="toggle-all-btn" id="toggleAllBtn" type="button" aria-expanded="true" aria-controls="allChannelsTable">
+          ▲ 渠道对比（点击任一渠道行查看详情）
+        </button>
+        <div class="all-channels-table" id="allChannelsTable" aria-hidden="false">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>渠道</th>
+                  <th>单价（元/kg）</th>
+                  <th>基础运费</th>
+                  <th>总报价（元）</th>
+                  <th>备注</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="cheapest selected" data-channel-id="yiwu" tabindex="0" aria-selected="true">
+                  <td data-label="渠道">
+                    <span class="channel-name">义乌合德以星限时达 <span class="cheapest-badge">最低价</span><span class="selected-badge">查看中</span></span>
+                    <span class="channel-delivery">派送 1-2 天</span>
+                  </td>
+                  <td data-label="单价" class="price-unit">14.5</td>
+                  <td data-label="基础运费" class="price-unit">¥304.5</td>
+                  <td data-label="总报价" class="total-price">¥684.5 / $99.2</td>
+                  <td data-label="备注" class="remark">含电池需提供 MSDS 及 UN38.3 测试报告。</td>
+                </tr>
+                <tr data-channel-id="exx" tabindex="0">
+                  <td data-label="渠道">
+                    <span class="channel-name">
+                      快船 EXX 海派
+                    </span>
+                    <span class="channel-delivery">派送 1-2 天</span>
+                  </td>
+                  <td data-label="单价" class="price-unit">15.7</td>
+                  <td data-label="基础运费" class="price-unit">¥329.7</td>
+                  <td data-label="总报价" class="total-price">¥709.7 / $102.9</td>
+                  <td data-label="备注" class="remark">开船后16天内提取，超时赔1元/KG。</td>
+                </tr>
+                <tr data-channel-id="max" tabindex="0">
+                  <td data-label="渠道">
+                    <span class="channel-name">美森 MAX</span>
+                    <span class="channel-delivery">派送 1-2 天</span>
+                  </td>
+                  <td data-label="单价" class="price-unit">16.7</td>
+                  <td data-label="基础运费" class="price-unit">¥350.7</td>
+                  <td data-label="总报价" class="total-price">¥730.7 / $105.9</td>
+                  <td data-label="备注" class="remark">时效稳定，适合常规 FBA 补货。</td>
+                </tr>
+                <tr data-channel-id="matson" tabindex="0">
+                  <td data-label="渠道">
+                    <span class="channel-name">美森正班</span>
+                    <span class="channel-delivery">派送 1-2 天</span>
+                  </td>
+                  <td data-label="单价" class="price-unit">16.9</td>
+                  <td data-label="基础运费" class="price-unit">¥354.9</td>
+                  <td data-label="总报价" class="total-price">¥734.9 / $106.5</td>
+                  <td data-label="备注" class="remark">开船后15天内提取，适合时效敏感货物。</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="notice-card">
+        ⚠️ 请提供 MSDS 报告和 UN38.3 测试报告，否则货代加收 100元/票
+      </div>
+
+      <div class="checklist-card">
+        <strong>接单前检查清单</strong>
+        · 单票最低 21KG 起运，单件计费重最低 13KG。<br>
+        · 单箱实重不得超过 22KG，超过需按超重附加费处理。<br>
+        · 超长、偏远、地址修正、包装额外处理费等按渠道规则另计。<br>
+        · 液体、粉末、仿牌、侵权、禁运品等一律不接。
+      </div>
+
+      <div class="terms-wrap">
+        <button class="terms-toggle" id="usTermsToggleBtn" type="button">▼ 完整条款（货代原文，点击展开）</button>
+        <div class="terms-body show" id="usTermsBody">【渠道重点说明】
+1、接单独报关件350RMB/票，续页50RMB/页。
+2、非亚马逊地址、偏远地址、岛屿地址、二次派送等需按实际情况确认并补收。
+3、单票最低21KG起运，单件计费重不能低于13KG。
+4、货物品名和价值必须如实申报，不可用笼统品名，需带 HSCODE 海关编码。
+5、如亚马逊仓库因包装问题产生拒收等原因，我司不承担责任。</div>
+      </div>
+    </div>
+
+  </div>
+  <script src="ui-preview.js"></script>
+</body>
+</html>
