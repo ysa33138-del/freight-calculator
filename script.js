@@ -812,7 +812,8 @@ function calcEU() {
       总计费重 <strong>${totalBillable} kg</strong>（共 ${groupCount} 种箱型）&nbsp;·&nbsp;
       目的地：${destLabel}&nbsp;·&nbsp;
       报价类型：${taxLabel}&nbsp;·&nbsp;
-      适用档位：<strong>${tierLabel}</strong>
+      适用档位：<strong>${tierLabel}</strong>&nbsp;·&nbsp;
+      预计时效：<strong>${config.transit || '请与货代确认'}</strong>
     </div>
 
     <div class="result-best-card">

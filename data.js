@@ -136,6 +136,7 @@ const EU_DATA = {
   uk: {
     label: '英国',
     minWeight: 26,
+    transit: '请与货代确认（英国海运时效）',
     minPerPiece: 13,
     tiers: [26, 100],
     channels: [
@@ -149,6 +150,7 @@ const EU_DATA = {
   eu: {
     label: '欧洲大陆',
     minWeight: 25,
+    transit: '开船约30-38天提取（不含塞港/海关查验/亚马逊排仓）',
     minPerPiece: 13,
     tiers: [15, 50, 100],
     countries: [
