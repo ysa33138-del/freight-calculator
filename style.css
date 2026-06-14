@@ -652,6 +652,12 @@ tbody td:nth-child(4) { text-align: right; }
   display: block;
 }
 
+.channel-title {
+  font-weight: 700;
+  color: var(--blue-800);
+  letter-spacing: .01em;
+}
+
 .channel-delivery {
   font-size: .76rem;
   color: var(--gray-500);
@@ -1291,6 +1297,11 @@ thead {
 
 .results-section {
   margin-top: 8px;
+  display: none;
+}
+
+.results-section:has(#results.show) {
+  display: block;
 }
 
 .results-section-title {
