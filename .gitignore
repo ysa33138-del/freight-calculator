@@ -4,8 +4,6 @@ Thumbs.db
 .vscode/
 .claude/
 node_modules/
-package.json
-package-lock.json
 *.xlsx
 *.xls
 *.md
